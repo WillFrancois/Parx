@@ -1,0 +1,16 @@
+services:
+  pocketbase:
+    container_name: parx-db
+    build: .
+    ports:
+      - "8090:8090"
+    volumes:
+      - db-data:/usr/src/app/pb_data
+
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./pb_data/
