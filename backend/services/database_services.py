@@ -1,12 +1,23 @@
-from pocketbase import PocketBase as pb
+from dotenv import load_dotenv
 import os
+from pocketbase import PocketBase as pb
 
+load_dotenv()
 # get superuser data from enviorment
-email = os.getenv('ADMIN_EMAIL')
-password = os.getenv('ADMIN_PASSWORD')
+admin_email = os.getenv('ADMIN_EMAIL')
+admin_password = os.getenv('ADMIN_PASSWORD')
+pb_client = os.getenv('PB_URL')
 
 
-client = pb('') # Enter URL for pocketbase here
+client = pb(pb_client) 
 
-# Authenticate SuperUser
-superuser_data = client.collection("_superusers").auth_with_password(email,password)
+
+def verify_db(func):
+    def wrapper(*args,**kwargs):
+        superuser_data = client.admins.auth_with_password(admin_email,admin_password)
+        superuser_data.is_valid
+        result = func(*args,**kwargs)
+        client.auth_store.clear()
+        return result
+    return wrapper
+        

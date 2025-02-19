@@ -1,4 +1,6 @@
 from flask import Flask
+from routes.user_routes import user_blueprint
+
 
 def create_app():
     app = Flask(__name__)
@@ -6,6 +8,7 @@ def create_app():
     return app
 
 def blueprint_config(app):
-    pass
+    app.register_blueprint(user_blueprint,url_prefix='/user')
 
 app = create_app()
+app.run(debug=True)
