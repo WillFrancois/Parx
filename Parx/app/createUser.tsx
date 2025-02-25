@@ -1,38 +1,37 @@
 import { View, Text, Button, TextInput, Alert } from "react-native";
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Index() {
-    const router = useRouter();
+export default function CreateUser() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const router = useRouter();
 
-    const handleLogin = async () => {
+    const handleSubmit = async () => {
         try {
-            const response = await fetch("http://localhost:5000/user/login", {
+            const response = await fetch("http://localhost:5000/users", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ email, password })
             });
-
             if (!response.ok) {
-                throw new Error("Invalid credentials");
+                throw new Error("Failed to create user");
             }
 
-            const data = await response.json();
-            await AsyncStorage.setItem("token", data.token)
-            router.push("/home");
-        } catch (error: any) {
-            Alert.alert("Login Failed", error.message)
+            Alert.alert("Success", "Account created successfully!", [
+                { text: "OK", onPress: () => router.push("/") }
+            ])
+
+            } catch (error: any) {
+                Alert.alert("Failed to Create User", error.message)
         }
     };
 
     return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <Text style={{ fontSize: 24, marginBottom: 20 }}>Login Page</Text>
+            <Text style={{ fontSize: 24, marginBottom: 20 }}>Create Account</Text>
             <Text style={{ fontSize: 17, marginBottom: 10 }}>Email</Text>
             <TextInput 
                 style={{ height: 40, padding: 5 }}
@@ -49,8 +48,7 @@ export default function Index() {
                 defaultValue={password}
                 secureTextEntry
             />
-            <Button title="Login" onPress={handleLogin} />
-            <Button title="Create User" onPress={() => router.push('/createUser')} />
+            <Button title="Create Account" onPress={handleSubmit} />
         </View>
     )
 }
