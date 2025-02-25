@@ -7,6 +7,7 @@ load_dotenv()
 admin_email = os.getenv('ADMIN_EMAIL')
 admin_password = os.getenv('ADMIN_PASSWORD')
 pb_client = os.getenv('PB_URL')
+db_pepper = os.getenv('PEPPER').encode('utf-8')
 
 
 client = pb(pb_client) 
