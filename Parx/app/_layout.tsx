@@ -11,7 +11,8 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("token");
-      if (token) {
+      const guest = await AsyncStorage.getItem("guest");
+      if (token || guest) {
         setIsAuthenticated(true);
       }
       setLoading(false);

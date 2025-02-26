@@ -11,7 +11,8 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("token");
-      if (!token) {
+      const guest = await AsyncStorage.getItem("guest");
+      if (!token && !guest) {
         router.replace("/");
       } else {
         setIsAuthenticated(true);
@@ -22,6 +23,7 @@ export default function Home() {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("guest");
     Alert.alert("Logged out", "You have been logged out.");
     router.replace("/");
   };

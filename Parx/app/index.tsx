@@ -30,6 +30,15 @@ export default function Index() {
         }
     };
 
+    const handleGuestLogin = async () => {
+        try {
+            await AsyncStorage.setItem("guest", "true");
+            router.push("/home");
+        } catch (error) {
+            Alert.alert("Error", "Unable to login as guest.");
+        }
+    };
+
     return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <Text style={{ fontSize: 24, marginBottom: 20 }}>Login Page</Text>
@@ -50,6 +59,7 @@ export default function Index() {
                 secureTextEntry
             />
             <Button title="Login" onPress={handleLogin} />
+            <Button title="Guest" onPress={handleGuestLogin} />
             <Button title="Create User" onPress={() => router.push('/createUser')} />
         </View>
     )
