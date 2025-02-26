@@ -1,4 +1,4 @@
-import { View, Text, Button, TextInput, Alert } from "react-native";
+import { View, Text, Button, TextInput, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,10 +7,12 @@ export default function Index() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
+        setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:5000/user/login", {
+            const response = await fetch("http://YOUR_IPV4_ADDRESS/user/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -24,8 +26,11 @@ export default function Index() {
 
             const data = await response.json();
             await AsyncStorage.setItem("token", data.token)
+            setIsLoading(false);
+            Alert.alert("Login Successful", "Successfully logged in!")
             router.push("/home");
         } catch (error: any) {
+            setIsLoading(false);
             Alert.alert("Login Failed", error.message)
         }
     };
@@ -61,6 +66,7 @@ export default function Index() {
             <Button title="Login" onPress={handleLogin} />
             <Button title="Guest" onPress={handleGuestLogin} />
             <Button title="Create User" onPress={() => router.push('/createUser')} />
+            {isLoading && <ActivityIndicator size="large" />}
         </View>
     )
 }

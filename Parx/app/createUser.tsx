@@ -1,15 +1,17 @@
-import { View, Text, Button, TextInput, Alert } from "react-native";
+import { View, Text, Button, TextInput, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
 
 export default function CreateUser() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async () => {
+        setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:5000/users", {
+            const response = await fetch("http://YOUR_IPV4_ADDRESS:5000/user", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -19,13 +21,13 @@ export default function CreateUser() {
             if (!response.ok) {
                 throw new Error("Failed to create user");
             }
-
-            Alert.alert("Success", "Account created successfully!", [
-                { text: "OK", onPress: () => router.push("/") }
-            ])
+            setIsLoading(false);
+            Alert.alert("Success", "Account created successfully!");
+            router.push('/');;
 
             } catch (error: any) {
-                Alert.alert("Failed to Create User", error.message)
+                setIsLoading(false);
+                Alert.alert("Failed to Create User", error.message);
         }
     };
 
@@ -48,7 +50,9 @@ export default function CreateUser() {
                 defaultValue={password}
                 secureTextEntry
             />
+            
             <Button title="Create Account" onPress={handleSubmit} />
+            {isLoading && <ActivityIndicator size="large" />}
         </View>
     )
 }
