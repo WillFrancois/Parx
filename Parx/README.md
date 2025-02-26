@@ -106,3 +106,78 @@ app/
 
 Expo Router offers a streamlined navigation experience in React Native apps, leveraging React Navigation under the hood but simplifying the setup and usage with automatic file-based routing.
 
+# Finding Your Local IPv4 Address for Expo Fetch Requests
+
+When testing your React Native app in **Expo Go** on your mobile device, you'll need to ensure that your app can access the backend API. If you're running the backend locally (e.g., on your development machine), you need to use the **IPv4 address** of your machine, not `localhost` or `127.0.0.1`.
+
+Follow the steps below to find the **IPv4 address** of your machine based on your operating system:
+
+## 1. Windows
+
+1. Press `Win + R` to open the Run dialog.
+2. Type `cmd` and press Enter to open the Command Prompt.
+3. Type the following command and press Enter:
+
+ipconfig
+
+4. Look for the **"IPv4 Address"** under the **Ethernet adapter** or **Wi-Fi adapter** section. The value will look like `192.168.x.x` (e.g., `192.168.1.100`).
+
+Example output:
+
+Ethernet adapter Local Area Connection: IPv4 Address. . . . . . . . . . . : 192.168.1.100
+
+
+Use this IP address in your `fetch` request, replacing `localhost` or `127.0.0.1`.
+
+## 2. macOS
+
+1. Open **System Preferences** from the Apple menu.
+2. Click on **Network**.
+3. Select your active network connection (e.g., Wi-Fi).
+4. Your **IPv4 address** should be displayed under the **Status** or **Advanced** section, depending on your macOS version. It will look like `192.168.x.x` (e.g., `192.168.1.100`).
+
+Alternatively, you can use the Terminal:
+1. Open **Terminal**.
+2. Type the following command and press Enter:
+
+ifconfig
+
+3. Look for the `inet` field under the section for your active network interface (usually `en0` for Ethernet or `en1` for Wi-Fi). The IP address will look like `192.168.x.x`.
+
+Example output:
+
+en1: flags=8863<UP,BROADCAST,RUNNING,SMART,POINTOPOINT,MULTICAST> mtu 1500 inet 192.168.1.100 netmask 0xffffff00 broadcast 192.168.1.255
+
+
+## 3. Linux
+
+1. Open a terminal window.
+2. Type the following command and press Enter:
+
+ifconfig
+
+(If `ifconfig` is not available, use `ip addr` instead.)
+
+3. Look for the **inet** field under the network interface you're using (e.g., `eth0` for Ethernet or `wlan0` for Wi-Fi). The value will look like `192.168.x.x`.
+
+Example output:
+
+wlan0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 1500 inet 192.168.1.100 netmask 255.255.255.0 broadcast 192.168.1.255
+
+
+## Updating Your Fetch Request
+
+Once you've located your **IPv4 address**, update the `fetch` URL in your app to use the IP address instead of `localhost` or `127.0.0.1`.
+
+Example:
+
+```js
+fetch("http://192.168.1.100:5000/user", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ email, password }),
+});
+
+    Note: Ensure your mobile device and the development machine are on the same local network (Wi-Fi), so the phone can access the backend running on the machine.
