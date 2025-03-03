@@ -2,6 +2,7 @@ import { View, Text, Button, TextInput, Alert, ActivityIndicator } from "react-n
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from "@/config";
 
 export default function Index() {
     const router = useRouter();
@@ -12,7 +13,7 @@ export default function Index() {
     const handleLogin = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("http://YOUR_IPV4_ADDRESS/user/login", {
+            const response = await fetch(`${API_BASE_URL}/user/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
