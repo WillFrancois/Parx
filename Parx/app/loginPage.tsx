@@ -1,39 +1,52 @@
 import { View, Text, Button, TextInput, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function CreateUser() {
+export default function Login() {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
 
-    const handleSubmit = async () => {
+    const handleLogin = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("http://192.168.1.168:5000/user", {
+            const response = await fetch("http://192.168.1.168:5000/user/login", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ email, password })
             });
-            if (!response.ok) {
-                throw new Error("Failed to create user");
-            }
-            setIsLoading(false);
-            Alert.alert("Success", "Account created successfully!");
-            router.push('/');;
 
-            } catch (error: any) {
-                setIsLoading(false);
-                Alert.alert("Failed to Create User", error.message);
+            if (!response.ok) {
+                throw new Error("Invalid credentials");
+            }
+
+            const data = await response.json();
+            await AsyncStorage.setItem("token", data.token)
+            setIsLoading(false);
+            Alert.alert("Login Successful", "Successfully logged in!")
+            router.push("/home");
+        } catch (error: any) {
+            setIsLoading(false);
+            Alert.alert("Login Failed", error.message)
+        }
+    };
+
+    const handleGuestLogin = async () => {
+        try {
+            await AsyncStorage.setItem("guest", "true");
+            router.push("/home");
+        } catch (error) {
+            Alert.alert("Error", "Unable to login as guest.");
         }
     };
 
     return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <Text style={{ fontSize: 24, marginBottom: 20 }}>Create Account</Text>
+            <Text style={{ fontSize: 24, marginBottom: 20 }}>Login Page</Text>
             <Text style={{ fontSize: 17, marginBottom: 10 }}>Email</Text>
             <TextInput 
                 style={{ height: 40, padding: 5 }}
@@ -50,8 +63,9 @@ export default function CreateUser() {
                 defaultValue={password}
                 secureTextEntry
             />
-            
-            <Button title="Create Account" onPress={handleSubmit} />
+            <Button title="Login" onPress={handleLogin} />
+            <Button title="Guest" onPress={handleGuestLogin} />
+            <Button title="Create User" onPress={() => router.push('/createUser')} />
             {isLoading && <ActivityIndicator size="large" />}
         </View>
     )
