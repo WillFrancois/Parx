@@ -29,10 +29,10 @@ The .env file in the backend must have the following properties:
 
 ### Example .env file contents:
 
-ADMIN_EMAIL=testing@parx.site
-ADMIN_PASSWORD=testingparx
-PB_URL=http://localhost:8090
-PEPPER=$2a$04$K2lxuHGkylzKOIDTl5a47OVuGqWKAUdrooz17oMMu
+- ADMIN_EMAIL=testing@parx.site
+- ADMIN_PASSWORD=testingparx
+- PB_URL=http://localhost:8090
+- PEPPER=$2a$04$K2lxuHGkylzKOIDTl5a47OVuGqWKAUdrooz17oMMu
 
 ## Running the Backend
 
