@@ -11,6 +11,7 @@ To use a python virtual environment and install the necessary packages, use the 
 - Linux: python -m venv ./env; source ./env/bin/activate; pip install -r requirements.txt
 - Windows (cmd): python -m venv env & env/bin/activate.bat & pip install -r requirements.txt
 - Windows (Powershell): python -m venv env & env/bin/Activate.ps1 & pip install -r requirements.txt
+- Macintosh: python -m venv ./env && source ./env/bin/activate && pip install -r requirements.txt
 
 ### Alternative: Install locally
 
