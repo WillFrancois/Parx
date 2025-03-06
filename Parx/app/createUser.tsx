@@ -1,6 +1,7 @@
 import { View, Text, Button, TextInput, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
+import { API_BASE_URL } from "@/config";
 
 export default function CreateUser() {
     const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ export default function CreateUser() {
     const handleSubmit = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("http://192.168.1.168:5000/user", {
+            const response = await fetch(`${API_BASE_URL}/user`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
