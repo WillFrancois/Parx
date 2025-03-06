@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Text, View, Button, Alert } from "react-native";
 import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { pb } from "@/config";
 
 
 export default function Home() {
@@ -10,9 +11,9 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("token");
+      const isValid = pb.authStore.isValid;
       const guest = await AsyncStorage.getItem("guest");
-      if (!token && !guest) {
+      if (!isValid && !guest) {
         router.replace("/");
       } else {
         setIsAuthenticated(true);
@@ -22,7 +23,7 @@ export default function Home() {
   }, []);
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("token");
+    pb.authStore.clear();
     await AsyncStorage.removeItem("guest");
     Alert.alert("Logged out", "You have been logged out.");
     router.replace("/");

@@ -2,7 +2,7 @@ import { View, Text, Button, TextInput, Alert, ActivityIndicator } from "react-n
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE_URL } from "@/config";
+import { API_BASE_URL, pb } from "@/config";
 
 export default function Login() {
     const router = useRouter();
@@ -24,9 +24,18 @@ export default function Login() {
             if (!response.ok) {
                 throw new Error("Invalid credentials");
             }
-
+            
             const data = await response.json();
-            await AsyncStorage.setItem("token", data.token)
+
+            if (!data.isValid) {
+                throw new Error("Authentication failed");
+            }
+
+            pb.authStore.save(data.token, data.record);
+            console.log(pb.authStore.isValid);
+            console.log(pb.authStore.token);
+            console.log(pb.authStore.record);
+
             setIsLoading(false);
             Alert.alert("Login Successful", "Successfully logged in!")
             router.push("/home");
@@ -66,7 +75,7 @@ export default function Login() {
             />
             <Button title="Login" onPress={handleLogin} />
             <Button title="Guest" onPress={handleGuestLogin} />
-            <Button title="Create User" onPress={() => router.push('/createUser')} />
+            <Button title="Create User" onPress={() => router.push('/account/createUser')} />
             {isLoading && <ActivityIndicator size="large" />}
         </View>
     )
