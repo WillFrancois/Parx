@@ -13,7 +13,7 @@ export default function Home() {
       const isValid = pb.authStore.isValid;
       const guest = await AsyncStorage.getItem("guest");
       if (!isValid && !guest) {
-        router.replace("/");
+        router.replace("/account/loginPage");
       } else {
         setIsAuthenticated(true);
       }
@@ -24,8 +24,9 @@ export default function Home() {
   const handleLogout = async () => {
     pb.authStore.clear();
     await AsyncStorage.removeItem("guest");
+    setIsAuthenticated(false);
     Alert.alert("Logged out", "You have been logged out.");
-    router.replace("/");
+    router.replace("/account/loginPage");
   };
 
   if (!isAuthenticated) {
@@ -38,7 +39,7 @@ export default function Home() {
       justifyContent: 'center',
       alignItems: 'center'
     }}>
-      <Text style={{ fontSize: 24, marginBottom: 20  }}>Welcome to Home!</Text>
+      <Text style={{ fontSize: 24, marginBottom: 20  }}>Welcome to Parx!</Text>
       <Button title="Logout" onPress={handleLogout} />
     </View>
   );
