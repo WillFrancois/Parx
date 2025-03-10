@@ -22,7 +22,7 @@ export default function AccountDetails() {
                 router.replace("/account/loginPage");
             } else {
                 try {
-                    const userData = await pb.collection('users').getOne('id')
+                    const userData = await pb.collection('usersView').getOne(`${pb.authStore.record?.string}`)
                     setUser({
                         email: userData.email,
                         created: userData.created,
