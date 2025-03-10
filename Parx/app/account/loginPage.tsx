@@ -54,6 +54,8 @@ export default function Login() {
         }
     };
 
+    
+
     return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <Text style={{ fontSize: 24, marginBottom: 20 }}>Login Page</Text>
@@ -73,9 +75,21 @@ export default function Login() {
                 defaultValue={password}
                 secureTextEntry
             />
-            <Button title="Login" onPress={handleLogin} />
-            <Button title="Guest" onPress={handleGuestLogin} />
-            <Button title="Create User" onPress={() => router.push('/account/createUser')} />
+            <View style={{
+                flexDirection: "row",
+                justifyContent: "space-around",
+                padding: 10,
+            }}>
+                <View style={{ marginHorizontal: 5 }}>
+                   <Button title="Login" onPress={handleLogin} /> 
+                </View>
+                <View style={{ marginHorizontal: 5 }}>
+                    <Button title="Guest" onPress={handleGuestLogin} />
+                </View>
+                <View style={{ marginHorizontal: 5 }}>
+                    <Button title="Create User" onPress={() => router.push('/account/createUser')} />
+                </View>
+            </View>
             {isLoading && <ActivityIndicator size="large" />}
         </View>
     )
