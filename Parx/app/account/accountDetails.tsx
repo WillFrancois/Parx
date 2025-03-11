@@ -55,12 +55,10 @@ export default function AccountDetails() {
     return (
         <View>
             <Text style={{ fontSize: 24, marginBottom: 20  }}>Account Information</Text>
-            <Text>User Email: {user.email}</Text>
             <Text>Date Created: {user.created}</Text>
-            <Text>City Official: {user.cityOfficial}</Text>
+            {user.cityOfficial && <Text>City Official</Text>}
             <Button title="Return to Home" onPress={() => router.push("/home")} />
             
         </View>
     )
 }
-// 6hfmcfwfl71o8q2
