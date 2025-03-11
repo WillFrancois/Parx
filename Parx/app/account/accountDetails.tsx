@@ -1,9 +1,8 @@
 import { pb } from "@/config";
-import { View, Text, Button, TextInput, Alert, ActivityIndicator, Image } from "react-native";
+import { View, Text, Button, Alert, ActivityIndicator, Image } from "react-native";
 import { useRouter } from 'expo-router';
 import React, {useState, useEffect} from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { jwtDecode } from "jwt-decode";
 
 export default function AccountDetails() {
     const router = useRouter();
@@ -20,9 +19,10 @@ export default function AccountDetails() {
 
             if (!isValid && !guest) {
                 router.replace("/account/loginPage");
-            } else {
+            } else if (isValid) {
+                console.log(pb.authStore.record);
                 try {
-                    const userData = await pb.collection('usersView').getOne(`${pb.authStore.record?.string}`)
+                    const userData = await pb.collection('userDetails').getOne(`${pb.authStore.record}`)
                     setUser({
                         email: userData.email,
                         created: userData.created,
@@ -30,6 +30,7 @@ export default function AccountDetails() {
                     })
                 } catch (error: any) {
                     Alert.alert("Error", error.message);
+                    console.log(error);
                 } finally {
                     setLoading(false);
                 }
@@ -62,3 +63,4 @@ export default function AccountDetails() {
         </View>
     )
 }
+// 6hfmcfwfl71o8q2
