@@ -32,6 +32,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "@react-native-mapbox-gl/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox",
+          "RNMapboxMapsAccessToken": "YOUR_MAPBOX_ACCESS_TOKEN"
+        }
       ]
     ],
     "experiments": {
