@@ -1,32 +1,43 @@
-import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { Tabs } from "expo-router";
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useState, useEffect } from "react";
 
 export default function RootLayout() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("token");
-      const guest = await AsyncStorage.getItem("guest");
-      if (token || guest) {
-        setIsAuthenticated(true);
-      }
-      setLoading(false);
-    };
-    checkAuth();
-  }, []);
-
-  if (loading) return null;
-
   return (
-      <Stack >
-        <Stack.Screen name="index" options={{ title: "Login" }} />
-        <Stack.Screen name="home" options={{ title: "Home" }} />
-        <Stack.Screen name="createuser" options={{ title: "Create Account" }} />
-      </Stack>
+    <>
+      <Tabs >
+        <Tabs.Screen name="index" options={{ 
+          href: null,
+          tabBarStyle: { display: "none"} }} 
+        />
+        <Tabs.Screen name="splashPage" options={{ 
+          title: "Splash",
+          href: null,
+          tabBarStyle: { display: "none"} }} 
+        />
+        <Tabs.Screen name="account/loginPage" options={{ 
+          title: "Login",
+          href: null,
+          tabBarStyle: { display: "none"} }} 
+        />
+        <Tabs.Screen name="account/createUser" options={{ 
+          title: "Create Account",
+          href: null,
+          tabBarStyle: { display: "none"} }} 
+        />
+        <Tabs.Screen name="home" options={{ 
+          title: "Home", 
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />
+          }} 
+        />
+        <Tabs.Screen name="account/accountDetails" options={{ 
+          title: "Account Details",
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="user" color={color} /> 
+        }} 
+          />
+      </Tabs>
+    </>
     );
 }

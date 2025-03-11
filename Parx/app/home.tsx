@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Text, View, Button, Alert } from "react-native";
 import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { pb } from "@/config";
 
 export default function Home() {
   const router = useRouter();
@@ -10,10 +10,10 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("token");
+      const isValid = pb.authStore.isValid;
       const guest = await AsyncStorage.getItem("guest");
-      if (!token && !guest) {
-        router.replace("/");
+      if (!isValid && !guest) {
+        router.replace("/account/loginPage");
       } else {
         setIsAuthenticated(true);
       }
@@ -22,10 +22,11 @@ export default function Home() {
   }, []);
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("token");
+    pb.authStore.clear();
     await AsyncStorage.removeItem("guest");
+    setIsAuthenticated(false);
     Alert.alert("Logged out", "You have been logged out.");
-    router.replace("/");
+    router.replace("/account/loginPage");
   };
 
   if (!isAuthenticated) {
@@ -38,7 +39,7 @@ export default function Home() {
       justifyContent: 'center',
       alignItems: 'center'
     }}>
-      <Text style={{ fontSize: 24, marginBottom: 20  }}>Welcome to Home!</Text>
+      <Text style={{ fontSize: 24, marginBottom: 20  }}>Welcome to Parx!</Text>
       <Button title="Logout" onPress={handleLogout} />
     </View>
   );

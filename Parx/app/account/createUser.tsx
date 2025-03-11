@@ -24,7 +24,7 @@ export default function CreateUser() {
             }
             setIsLoading(false);
             Alert.alert("Success", "Account created successfully!");
-            router.push('/');;
+            router.push('/account/loginPage');;
 
             } catch (error: any) {
                 setIsLoading(false);
