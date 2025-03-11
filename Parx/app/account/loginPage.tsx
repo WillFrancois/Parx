@@ -2,6 +2,7 @@ import { View, Text, Button, TextInput, Alert, ActivityIndicator } from "react-n
 import { useRouter } from 'expo-router';
 import React, {useState} from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL, pb } from "@/config";
 
 export default function Login() {
     const router = useRouter();
@@ -12,7 +13,7 @@ export default function Login() {
     const handleLogin = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("http://192.168.1.168:5000/user/login", {
+            const response = await fetch(`${API_BASE_URL}/user/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -23,9 +24,18 @@ export default function Login() {
             if (!response.ok) {
                 throw new Error("Invalid credentials");
             }
-
+            
             const data = await response.json();
-            await AsyncStorage.setItem("token", data.token)
+
+            if (!data.isValid) {
+                throw new Error("Authentication failed");
+            }
+
+            pb.authStore.save(data.token, data.record);
+            console.log(pb.authStore.isValid);
+            console.log(pb.authStore.token);
+            console.log(pb.authStore.record);
+
             setIsLoading(false);
             Alert.alert("Login Successful", "Successfully logged in!")
             router.push("/streetMap");
@@ -43,6 +53,8 @@ export default function Login() {
             Alert.alert("Error", "Unable to login as guest.");
         }
     };
+
+    
 
     return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -63,9 +75,21 @@ export default function Login() {
                 defaultValue={password}
                 secureTextEntry
             />
-            <Button title="Login" onPress={handleLogin} />
-            <Button title="Guest" onPress={handleGuestLogin} />
-            <Button title="Create User" onPress={() => router.push('/createUser')} />
+            <View style={{
+                flexDirection: "row",
+                justifyContent: "space-around",
+                padding: 10,
+            }}>
+                <View style={{ marginHorizontal: 5 }}>
+                   <Button title="Login" onPress={handleLogin} /> 
+                </View>
+                <View style={{ marginHorizontal: 5 }}>
+                    <Button title="Guest" onPress={handleGuestLogin} />
+                </View>
+                <View style={{ marginHorizontal: 5 }}>
+                    <Button title="Create User" onPress={() => router.push('/account/createUser')} />
+                </View>
+            </View>
             {isLoading && <ActivityIndicator size="large" />}
         </View>
     )

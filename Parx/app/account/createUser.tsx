@@ -12,7 +12,7 @@ export default function CreateUser() {
     const handleSubmit = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("http://YOUR_IPV4_ADDRESS:5000/user", {
+            const response = await fetch(`${API_BASE_URL}/user`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -24,7 +24,7 @@ export default function CreateUser() {
             }
             setIsLoading(false);
             Alert.alert("Success", "Account created successfully!");
-            router.push('/');;
+            router.push('/account/loginPage');;
 
             } catch (error: any) {
                 setIsLoading(false);
