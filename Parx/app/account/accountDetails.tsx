@@ -1,23 +1,28 @@
 import { pb } from "@/config";
-import { View, Text, Button, Alert, ActivityIndicator, Image } from "react-native";
+import { View, Text, Button, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import React, {useState, useEffect} from 'react';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AccountDetails() {
     const router = useRouter();
     const [user, setUser] = useState<{
-         email: String, 
-         created: String, 
-         cityOfficial: boolean } |null>(null);
+         email: string; 
+         created: string; 
+         cityOfficial: boolean;
+        }>({
+            email: "",
+            created: "",
+            cityOfficial: false,
+        });
+
     const [loading, setLoading] = useState(true);
+    
 
     useEffect(() => {
         const fetchUserData = async () => {
             const isValid = pb.authStore.isValid;
-            const guest = await AsyncStorage.getItem("guest");
 
-            if (!isValid && !guest) {
+            if (!isValid) {
                 router.replace("/account/loginPage");
             } else if (isValid) {
                 console.log(pb.authStore.record);
@@ -37,7 +42,22 @@ export default function AccountDetails() {
             }
         };
         fetchUserData();
+
+        const unsubscribe = pb.authStore.onChange(() => {
+            fetchUserData();
+        })
+
+        return () => {
+            unsubscribe();
+        }
     }, [])
+
+    const handleLogout = async () => {
+        pb.authStore.clear();
+        Alert.alert("Logged out", "You have been logged out.");
+        router.replace("/account/loginPage");
+        console.log(pb.authStore.isValid);
+      };
 
     if (loading) {
         return (
@@ -53,12 +73,43 @@ export default function AccountDetails() {
     }
 
     return (
-        <View>
-            <Text style={{ fontSize: 24, marginBottom: 20  }}>Account Information</Text>
-            <Text>Date Created: {user.created}</Text>
-            {user.cityOfficial && <Text>City Official</Text>}
-            <Button title="Return to Home" onPress={() => router.push("/home")} />
-            
+        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 27, marginBottom: 20, }}>Account Information</Text>
+            <View style= {{
+                flexDirection: "row",
+                backgroundColor: "#ddd",
+            }}>
+                <Text style={{ 
+                    fontSize: 16, 
+                    fontWeight: 'bold', 
+                    marginHorizontal: 20 
+                    }}>
+                        Date Created:
+                    </Text>
+                <Text style={{ fontSize: 16, }}>{user.created}</Text>
+            </View>
+             
+            {user.cityOfficial && (
+                <Text style={{ 
+                    fontSize: 16, 
+                    fontWeight: 'bold', 
+                    marginHorizontal: 5 
+                }}>
+                    City Official ✅
+                    </Text>
+                )}
+            <View style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            padding: 10,
+            }}>
+                <View style={{ marginHorizontal: 5 }}>
+                    <Button title="Return to Home" onPress={() => router.push("/home")} />
+                </View>
+                <View style={{ marginHorizontal: 5 }}>
+                    <Button title="Logout" onPress={handleLogout} />
+                </View>
+            </View>
         </View>
     )
 }
