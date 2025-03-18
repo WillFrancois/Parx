@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, TextInput, Text, Alert } from 'react-native';
-import MapView, { PROVIDER_DEFAULT, UrlTile, Marker, Region } from 'react-native-maps';
+import MapView, { PROVIDER_DEFAULT, UrlTile, Polygon, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import PocketBase from 'pocketbase';
+import { pb } from '@/config';
+import { MAPBOX_API_KEY } from '@/config';
 
-
-const pb = new PocketBase('http://localhost:8090'); 
-const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2VhbmRlZXJheSIsImEiOiJjbTgxMzBqeTcweWd6MmlwdWgzaDBmd2Z0In0.BvER_lMJy1JwbxA127OHTQ'; 
-
-const MapScreen: React.FC = () => {
+const streetMap: React.FC = () => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapRegion, setMapRegion] = useState<Region | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [locations, setLocations] = useState<any[]>([]);
+  const [polygons, setPolygons] = useState<any[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -70,13 +67,19 @@ const MapScreen: React.FC = () => {
 
   const fetchLocations = async (latitude: number, longitude: number, radius: number) => {
     try {
-      const list = await pb.collection('parking_lots').getList(1, 100, {
-        filter: `latitude > ${latitude - radius} && latitude < ${latitude + radius} && longitude > ${longitude - radius} && longitude < ${longitude + radius}`,
-        sort: '-created',
+      const list = await pb.collection('parking_lots').getFullList();
+      const polygonsData = list.map((item: any) => {
+        const coordinates = item.geo_data.geometry.coordinates[0][0].map((coord: number[]) => ({
+          latitude: coord[1],
+          longitude: coord[0],
+        }));
+        return coordinates;
       });
-      setLocations(list.items || []);
+
+      setPolygons(polygonsData);
     } catch (error) {
       console.error('Error fetching locations:', error);
+      Alert.alert('Error', 'Failed to fetch locations. Please check your network and try again.');
     }
   };
 
@@ -97,7 +100,13 @@ const MapScreen: React.FC = () => {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         });
-        fetchLocations(center[1], center[0], 0.1); 
+        fetchLocations(center[1], center[0], 0.1);
+
+        // Automatically navigate to the ResultsScreen with the fetched data
+        router.push({
+          pathname: '/resultsPage',
+          params: { results: data.features },
+        });
       } else {
         Alert.alert('No results found', 'Please try a different search term.');
       }
@@ -130,11 +139,13 @@ const MapScreen: React.FC = () => {
             urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maximumZ={19}
           />
-          {locations.map((loc, index) => (
-            <Marker
+          {polygons.map((polygon, index) => (
+            <Polygon
               key={index}
-              coordinate={{ latitude: loc.latitude, longitude: loc.longitude }}
-              title={loc.name}
+              coordinates={polygon}
+              strokeColor="#FF0000"
+              fillColor="rgba(255,0,0,0.5)"
+              strokeWidth={2}
             />
           ))}
         </MapView>
@@ -163,4 +174,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapScreen;
+export default streetMap;
