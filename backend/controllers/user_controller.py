@@ -7,5 +7,4 @@ def user_create():
 
 def user_verify():
     data = request.json
-    print(data['email'], data['password'])
     return verify_user(data['email'], data['password'])

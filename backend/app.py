@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from routes.user_routes import user_blueprint
 from routes.favorites_routes import favorite_blueprint
+from routes.review_routes import review_blueprint
 
 
 def create_app():
@@ -13,6 +14,7 @@ def create_app():
 def blueprint_config(app):
     app.register_blueprint(user_blueprint,url_prefix='/user')
     app.register_blueprint(favorite_blueprint, url_prefix='/favorites')
+    app.register_blueprint(review_blueprint, url_prefix='/review')
 
 @user_blueprint.route('', methods=['OPTIONS'])
 def options():
