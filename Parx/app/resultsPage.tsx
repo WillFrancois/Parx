@@ -1,16 +1,17 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, Button } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 const ResultsPage: React.FC = () => {
-  const navigation = useNavigation();
   const route = useRoute();
+  const router = useRouter();
 
   if (!route.params || !route.params.results) {
     return (
       <View style={styles.container}>
         <Text>No results to display.</Text>
-        <Button title="Back" onPress={() => navigation.goBack()} />
+        <Button title="Back" onPress={() => router.push('/home')} />
       </View>
     );
   }
@@ -21,7 +22,7 @@ const ResultsPage: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Button title="Back" onPress={() => navigation.goBack()} />
+        <Button title="Back" onPress={() => router.push('/home')} />
       </View>
       <FlatList
         data={parsedResults}
