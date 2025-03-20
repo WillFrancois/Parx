@@ -27,11 +27,6 @@ export default function RootLayout() {
           href: null,
           tabBarStyle: { display: "none"} }} 
         />
-        <Tabs.Screen name="parking/favoritesPage" options={{
-          title: "Favorites",
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="star" color={color} />
-        }}
-        />
         <Tabs.Screen name="home" options={{ 
           title: "Home", 
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />
@@ -41,7 +36,15 @@ export default function RootLayout() {
           title: "Account Details",
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="user" color={color} /> 
         }} 
-          />
+        />
+        <Tabs.Screen name="resultsPage" options={{ 
+          title: "Results",  
+          headerShown: true,
+          href: null, // This prevents it from being a tab destination
+          tabBarStyle: { display: "none" } // Hide the tab bar on this screen
+          
+        }} 
+        />
       </Tabs>
     </>
     );

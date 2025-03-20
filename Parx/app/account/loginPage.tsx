@@ -48,7 +48,7 @@ export default function Login() {
     const handleGuestLogin = async () => {
         try {
             await AsyncStorage.setItem("guest", "true");
-            router.push("/streetMap");
+            router.push("/home");
         } catch (error) {
             Alert.alert("Error", "Unable to login as guest.");
         }
