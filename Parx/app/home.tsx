@@ -103,11 +103,14 @@ export default function Home() {
         });
         fetchLocations(center[1], center[0], 0.1);
 
+        
 
         router.push({
           pathname: '/resultsPage',
-          params: { results: data.features },
+          params: { results: JSON.stringify(data.features) },
         });
+
+
       } else {
         Alert.alert('No results found', 'Please try a different search term.');
       }

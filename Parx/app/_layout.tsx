@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useState } from "react";
+import { useRouter } from "expo-router";
 
 export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

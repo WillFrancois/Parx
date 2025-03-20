@@ -1,31 +1,31 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { View, Text, FlatList, StyleSheet, Button } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
+const ResultsPage: React.FC = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
 
-type ResultsScreenRouteParams = {
-  results: Array<{
-    place_name: string;
-    text: string;
-  }>;
-};
+  // Check if params are defined
+  if (!route.params || !route.params.results) {
+    return (
+      <View style={styles.container}>
+        <Text>No results to display.</Text>
+        <Button title="Back" onPress={() => navigation.goBack()} />
+      </View>
+    );
+  }
 
-
-type ResultsScreenProps = {
-  route: RouteProp<{ ResultsScreen: ResultsScreenRouteParams }, 'ResultsScreen'>;
-};
-
-const ResultsScreen: React.FC = () => {
-
-  const route = useRoute<ResultsScreenProps['route']>();
   const { results } = route.params;
-
-  console.log('Results:', results); 
+  const parsedResults = JSON.parse(results);
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Button title="Back" onPress={() => navigation.goBack()} />
+      </View>
       <FlatList
-        data={results}
+        data={parsedResults}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.item}>
@@ -44,6 +44,12 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#fff',
   },
+  header: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
+  },
   item: {
     padding: 15,
     borderBottomWidth: 1,
@@ -55,4 +61,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ResultsScreen;
+export default ResultsPage;
