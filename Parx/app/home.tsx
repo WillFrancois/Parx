@@ -1,19 +1,27 @@
-import { useEffect, useState } from "react";
-import { Text, View, Button, Alert } from "react-native";
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, TextInput, Text, Alert } from 'react-native';
+import MapView, { PROVIDER_DEFAULT, UrlTile, Polygon, Region } from 'react-native-maps';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { pb } from "@/config";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { pb } from '@/config';
+import { MAPBOX_API_KEY } from '@/config';
 
-export default function Home() {
+const streetMap: React.FC = () => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [mapRegion, setMapRegion] = useState<Region | undefined>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [polygons, setPolygons] = useState<any[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isValid = pb.authStore.isValid;
+      const token = await AsyncStorage.getItem("token");
       const guest = await AsyncStorage.getItem("guest");
-      if (!isValid && !guest) {
-        router.replace("./account/loginPage");
+      if (!token && !guest) {
+        router.replace("/");
       } else {
         setIsAuthenticated(true);
       }
@@ -22,14 +30,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-      if (!isAuthenticated) return;
-  
-      (async () => {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          setErrorMsg('Permission to access location was denied');
-          return;
-        }
+    if (!isAuthenticated) return;
+
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
       setMapRegion({
@@ -93,14 +102,11 @@ export default function Home() {
         });
         fetchLocations(center[1], center[0], 0.1);
 
-        
-
+        // Automatically navigate to the ResultsScreen with the fetched data
         router.push({
           pathname: '/resultsPage',
           params: { results: JSON.stringify(data.features) },
         });
-
-
       } else {
         Alert.alert('No results found', 'Please try a different search term.');
       }
@@ -110,17 +116,62 @@ export default function Home() {
   };
 
   if (!isAuthenticated) {
-    return <Text>Checking authentication...</Text>
+    return <Text>Checking authentication...</Text>;
   }
 
   return (
-    <View style={{
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
-      <Text style={{ fontSize: 24, marginBottom: 20  }}>Welcome to Parx!</Text>
-      <Button title="Logout" onPress={handleLogout} />
+    <View style={styles.container}>
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onSubmitEditing={handleSearch}
+      />
+      {mapRegion && (
+        <MapView
+          style={styles.map}
+          provider={PROVIDER_DEFAULT}
+          initialRegion={mapRegion}
+          showsUserLocation={true}
+        >
+          <UrlTile
+            urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maximumZ={19}
+          />
+          {polygons.map((polygon, index) => (
+            <Polygon
+              key={index}
+              coordinates={polygon}
+              strokeColor="#FF0000"
+              fillColor="rgba(255,0,0,0.5)"
+              strokeWidth={2}
+            />
+          ))}
+        </MapView>
+      )}
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  searchBar: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    right: 10,
+    height: 40,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    zIndex: 1,
+  },
+  map: {
+    flex: 1,
+  },
+});
+
+export default streetMap;

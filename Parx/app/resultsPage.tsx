@@ -6,7 +6,6 @@ const ResultsPage: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  // Check if params are defined
   if (!route.params || !route.params.results) {
     return (
       <View style={styles.container}>
