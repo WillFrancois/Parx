@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 
-
+// Define the type for the route parameters
 type ResultsScreenRouteParams = {
   results: Array<{
     place_name: string;
@@ -10,17 +10,17 @@ type ResultsScreenRouteParams = {
   }>;
 };
 
-
+// Define the type for the component props
 type ResultsScreenProps = {
   route: RouteProp<{ ResultsScreen: ResultsScreenRouteParams }, 'ResultsScreen'>;
 };
 
 const ResultsScreen: React.FC = () => {
-
+  // Use the useRoute hook to access the route object
   const route = useRoute<ResultsScreenProps['route']>();
   const { results } = route.params;
 
-  console.log('Results:', results); 
+  console.log('Results:', results); // Debugging line to check data
 
   return (
     <View style={styles.container}>

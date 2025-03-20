@@ -38,7 +38,7 @@ export default function Login() {
 
             setIsLoading(false);
             Alert.alert("Login Successful", "Successfully logged in!")
-            router.push("/home");
+            router.push("/streetMap");
         } catch (error: any) {
             setIsLoading(false);
             Alert.alert("Login Failed", error.message)
@@ -48,7 +48,7 @@ export default function Login() {
     const handleGuestLogin = async () => {
         try {
             await AsyncStorage.setItem("guest", "true");
-            router.push("/home");
+            router.push("/streetMap");
         } catch (error) {
             Alert.alert("Error", "Unable to login as guest.");
         }
