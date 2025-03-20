@@ -27,7 +27,7 @@ export default function RootLayout() {
           href: null,
           tabBarStyle: { display: "none"} }} 
         />
-        <Tabs.Screen name="parking/favoritesPage" options={{
+        <Tabs.Screen name="parking/favorites" options={{
           title: "Favorites",
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="star" color={color} />
         }}

@@ -44,7 +44,7 @@ export default function FavoritesPage() {
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                         <View style={{ padding: 10, borderBottomWidth: 1 }}>
-                            <Text>{item.parkingLot}</Text>
+                            <Text>Lot ID: {item.parkingLot}</Text>
                         </View>
                     )}
                 />
