@@ -7,7 +7,7 @@ const ResultsPage: React.FC = () => {
   const route = useRoute();
   const router = useRouter();
 
-  if (!route.params || !route.params.results) {
+  if (!route.params) {
     return (
       <View style={styles.container}>
         <Text>No results to display.</Text>
