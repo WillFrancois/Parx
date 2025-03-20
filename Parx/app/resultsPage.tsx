@@ -21,9 +21,7 @@ const ResultsPage: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Button title="Back" onPress={() => router.push('/home')} />
-      </View>
+      <Button title="Back" onPress={() => router.push('/home')} />
       <FlatList
         data={parsedResults}
         keyExtractor={(item, index) => index.toString()}
