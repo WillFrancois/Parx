@@ -38,11 +38,16 @@ export default function RootLayout() {
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="user" color={color} /> 
         }} 
         />
+        <Tabs.Screen name="streetMap" options={{ 
+          title: "Map", 
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="map" color={color} />
+        }} 
+        />
         <Tabs.Screen name="resultsPage" options={{ 
           title: "Results",  
           headerShown: true,
-          href: null, 
-          tabBarStyle: { display: "none" } 
+          href: null, // This prevents it from being a tab destination
+          tabBarStyle: { display: "none" } // Hide the tab bar on this screen
           
         }} 
         />
