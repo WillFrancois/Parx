@@ -38,7 +38,7 @@ export default function Login() {
 
             setIsLoading(false);
             Alert.alert("Login Successful", "Successfully logged in!")
-            router.push("/streetMap");
+            router.push("/home");
         } catch (error: any) {
             setIsLoading(false);
             Alert.alert("Login Failed", error.message)
