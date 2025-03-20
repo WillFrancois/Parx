@@ -30,4 +30,4 @@ def create_review(user_id, parking_lot_id, review_score):
 def retrieve_reviews(user_id):
     result = client.collection("reviews").get_full_list()
     filtered = [{"parking_lot_id": x.parking_lot, "rating": x.rating} for x in result if x.user == user_id]
-    return jsonify(filtered)
+    return jsonify(filtered, 200)
