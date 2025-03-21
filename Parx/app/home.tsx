@@ -83,6 +83,12 @@ const streetMap: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (location) {
+      fetchLocations(location.coords.latitude, location.coords.longitude, 0.1);
+    }
+  }, [location]);
+
   const handleSearch = async () => {
     if (!searchQuery) return;
 
