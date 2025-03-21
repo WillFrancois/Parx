@@ -15,7 +15,7 @@ def create_review(user_id, parking_lot_id, review_score):
 
     except pocketbase.errors.ClientResponseError:
         existingRow = client.collection("reviews").get_list(1, 1, {
-            filter: f'user.id = "${user_id}" && parkingLot.id = "${parking_lot_id}"'
+            filter: f'user.id = "{user_id}" && parkingLot.id = "{parking_lot_id}"'
         })
 
         print(existingRow.items[0].id)
@@ -25,3 +25,9 @@ def create_review(user_id, parking_lot_id, review_score):
         })
 
         return jsonify({"id": result.id}, 200)
+
+@verify_db
+def retrieve_reviews(user_id):
+    result = client.collection("reviews").get_full_list()
+    filtered = [{"parking_lot_id": x.parking_lot, "rating": x.rating} for x in result if x.user == user_id]
+    return jsonify(filtered, 200)
