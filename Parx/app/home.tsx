@@ -21,7 +21,7 @@ const streetMap: React.FC = () => {
       const isValid = pb.authStore.isValid;
       const guest = await AsyncStorage.getItem("guest");
       if (!isValid && !guest) {
-        router.replace("/");
+        router.replace("/account/loginPage");
       } else {
         setIsAuthenticated(true);
       }
