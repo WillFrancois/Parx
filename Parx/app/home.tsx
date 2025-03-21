@@ -102,7 +102,6 @@ const streetMap: React.FC = () => {
         });
         fetchLocations(center[1], center[0], 0.1);
 
-        // Automatically navigate to the ResultsScreen with the fetched data
         router.push({
           pathname: '/resultsPage',
           params: { results: JSON.stringify(data.features) },
@@ -128,6 +127,8 @@ const streetMap: React.FC = () => {
         onChangeText={setSearchQuery}
         onSubmitEditing={handleSearch}
       />
+
+      
       {mapRegion && (
         <MapView
           style={styles.map}
@@ -138,6 +139,7 @@ const streetMap: React.FC = () => {
           <UrlTile
             urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maximumZ={19}
+            
           />
           {polygons.map((polygon, index) => (
             <Polygon
