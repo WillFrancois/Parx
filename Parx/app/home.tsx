@@ -18,9 +18,9 @@ const streetMap: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("token");
+      const isValid = pb.authStore.isValid;
       const guest = await AsyncStorage.getItem("guest");
-      if (!token && !guest) {
+      if (!isValid && !guest) {
         router.replace("/");
       } else {
         setIsAuthenticated(true);
