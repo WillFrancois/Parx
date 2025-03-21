@@ -89,7 +89,7 @@ const streetMap: React.FC = () => {
     if (location) {
       timer = setTimeout(() => {
          fetchLocations(location.coords.latitude, location.coords.longitude, 0.1);
-      }, 1000);
+      }, 3000);
      
     }
 
