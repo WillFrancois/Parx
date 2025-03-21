@@ -67,7 +67,7 @@ const streetMap: React.FC = () => {
 
   const fetchLocations = async (latitude: number, longitude: number, radius: number) => {
     try {
-      const list = await pb.collection('parkingLotView').getFullList();
+      const list = await pb.collection('parking_lots').getFullList();
       const polygonsData = list.map((item: any) => {
         const coordinates = item.geo_data.geometry.coordinates[0][0].map((coord: number[]) => ({
           latitude: coord[1],
@@ -84,9 +84,16 @@ const streetMap: React.FC = () => {
   };
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+
     if (location) {
-      fetchLocations(location.coords.latitude, location.coords.longitude, 0.1);
+      timer = setTimeout(() => {
+         fetchLocations(location.coords.latitude, location.coords.longitude, 0.1);
+      }, 1000);
+     
     }
+
+    return () => clearTimeout(timer);
   }, [location]);
 
   const handleSearch = async () => {
