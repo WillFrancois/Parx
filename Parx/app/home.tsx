@@ -18,10 +18,10 @@ const streetMap: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isValid = pb.authStore.isValid
+      const token = await AsyncStorage.getItem("token");
       const guest = await AsyncStorage.getItem("guest");
-      if (!isValid && !guest) {
-        router.replace("/account/loginPage");
+      if (!token && !guest) {
+        router.replace("/");
       } else {
         setIsAuthenticated(true);
       }
@@ -82,12 +82,6 @@ const streetMap: React.FC = () => {
       Alert.alert('Error', 'Failed to fetch locations. Please check your network and try again.');
     }
   };
-
-  useEffect(() => {
-    if (location) {
-      fetchLocations(location.coords.latitude, location.coords.longitude, 0.1);
-    }
-  }, [location])
 
   const handleSearch = async () => {
     if (!searchQuery) return;
