@@ -67,7 +67,7 @@ const streetMap: React.FC = () => {
 
   const fetchLocations = async (latitude: number, longitude: number, radius: number) => {
     try {
-      const list = await pb.collection('parking_lots').getFullList();
+      const list = await pb.collection('parkingLotView').getFullList();
       const polygonsData = list.map((item: any) => {
         const coordinates = item.geo_data.geometry.coordinates[0][0].map((coord: number[]) => ({
           latitude: coord[1],
