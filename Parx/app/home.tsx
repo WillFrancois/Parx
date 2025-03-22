@@ -89,7 +89,7 @@ const streetMap: React.FC = () => {
     if (location) {
       timer = setTimeout(() => {
          fetchLocations(location.coords.latitude, location.coords.longitude, 0.1);
-      }, 3000);
+      }, 1000);
      
     }
 
@@ -190,3 +190,9 @@ const styles = StyleSheet.create({
 });
 
 export default streetMap;
+
+
+
+
+
+

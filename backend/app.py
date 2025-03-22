@@ -2,6 +2,8 @@ from flask import Flask # type: ignore
 from flask_cors import CORS # type: ignore
 from routes.user_routes import user_blueprint
 from routes.favorites_routes import favorite_blueprint
+from routes.review_routes import review_blueprint
+from routes.parkinglot_routes import parkinglot_blueprint
 
 
 def create_app():
@@ -13,6 +15,8 @@ def create_app():
 def blueprint_config(app):
     app.register_blueprint(user_blueprint,url_prefix='/user')
     app.register_blueprint(favorite_blueprint, url_prefix='/favorites')
+    app.register_blueprint(review_blueprint, url_prefix='/review')
+    app.register_blueprint(parkinglot_blueprint, url_prefix='/parkinglot')
 
 @user_blueprint.route('', methods=['OPTIONS'])
 def options():
