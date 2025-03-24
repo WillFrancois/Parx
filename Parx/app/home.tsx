@@ -6,6 +6,24 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { pb } from '@/config';
 import { MAPBOX_API_KEY } from '@/config';
+import { WebView } from 'react-native-webview';
+
+
+
+interface ParkingLot {
+  id: string;
+  object_id: number;
+  price_per_hour: number;
+  total_spaces: number;
+  filled_spaces: number;
+  zip_codes: string;
+  geo_data: {
+    geometry: {
+      coordinates: number[][][];
+    };
+  };
+}
+
 
 const streetMap: React.FC = () => {
   const router = useRouter();
@@ -15,6 +33,9 @@ const streetMap: React.FC = () => {
   const [mapRegion, setMapRegion] = useState<Region | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [polygons, setPolygons] = useState<any[]>([]);
+  const [parkingLots, setParkingLots] = useState<ParkingLot[]>([]);
+  const [webViewKey, setWebViewKey] = useState(0);
+
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -41,42 +62,14 @@ const streetMap: React.FC = () => {
 
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
-      setMapRegion({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
-
-      const locationSubscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 5000 },
-        (newLocation) => {
-          setLocation(newLocation);
-          setMapRegion({
-            latitude: newLocation.coords.latitude,
-            longitude: newLocation.coords.longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          });
-        }
-      );
-
-      return () => locationSubscription.remove();
     })();
   }, [isAuthenticated]);
 
   const fetchLocations = async (latitude: number, longitude: number, radius: number) => {
     try {
-      const list = await pb.collection('parking_lots').getFullList();
-      const polygonsData = list.map((item: any) => {
-        const coordinates = item.geo_data.geometry.coordinates[0][0].map((coord: number[]) => ({
-          latitude: coord[1],
-          longitude: coord[0],
-        }));
-        return coordinates;
-      });
-
-      setPolygons(polygonsData);
+      const list = await pb.collection('parking_lots').getFullList<ParkingLot>();
+      setParkingLots(list);
+      setWebViewKey(prev => prev + 1);
     } catch (error) {
       console.error('Error fetching locations:', error);
       Alert.alert('Error', 'Failed to fetch locations. Please check your network and try again.');
@@ -127,6 +120,89 @@ const streetMap: React.FC = () => {
     }
   };
 
+  const getHtmlContent = () => {
+    const currentLocation = location ? {
+      lat: location.coords.latitude,
+      lng: location.coords.longitude
+    } : null;
+
+    // Convert parking lots data to a safe format
+    const safeParking = parkingLots.map(lot => ({
+      id: lot.id,
+      object_id: lot.object_id,
+      price_per_hour: lot.price_per_hour,
+      total_spaces: lot.total_spaces,
+      filled_spaces: lot.filled_spaces,
+      zip_codes: lot.zip_codes,
+      coordinates: lot.geo_data?.geometry?.coordinates?.[0]?.[0] || []
+    }));
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+          <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+          <style>
+            body { margin: 0; padding: 0; }
+            #map { height: 100vh; width: 100vw; }
+            .popup-content { padding: 10px; }
+            .popup-title { font-weight: bold; margin-bottom: 5px; }
+          </style>
+        </head>
+        <body>
+          <div id="map"></div>
+          <script>
+            // Initialize map
+            const currentLocation = ${JSON.stringify(currentLocation)};
+            const parkingLots = ${JSON.stringify(safeParking)};
+            
+            const map = L.map('map').setView(
+              currentLocation ? [currentLocation.lat, currentLocation.lng] : [40.7128, -74.0060],
+              13
+            );
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+            }).addTo(map);
+
+            if (currentLocation) {
+              L.marker([currentLocation.lat, currentLocation.lng])
+                .addTo(map)
+                .bindPopup('Your Location');
+            }
+
+            // Add parking lots to map
+            parkingLots.forEach(lot => {
+              if (lot.coordinates && lot.coordinates.length > 0) {
+                const polygonCoords = lot.coordinates.map(coord => [coord[1], coord[0]]);
+                
+                const polygon = L.polygon(polygonCoords, {
+                  color: 'red',
+                  fillColor: '#f03',
+                  fillOpacity: 0.5
+                }).addTo(map);
+
+                const popupContent = \`
+                  <div class="popup-content">
+                    <div class="popup-title">Parking Lot \${lot.object_id}</div>
+                    <div>Price per Hour: $\${lot.price_per_hour}</div>
+                    <div>Total Spaces: \${lot.total_spaces}</div>
+                    <div>Filled Spaces: \${lot.filled_spaces}</div>
+                    <div>Zip Codes: \${lot.zip_codes}</div>
+                  </div>
+                \`;
+
+                polygon.bindPopup(popupContent);
+              }
+            });
+          </script>
+        </body>
+      </html>
+    `;
+};
+
   if (!isAuthenticated) {
     return <Text>Checking authentication...</Text>;
   }
@@ -140,31 +216,15 @@ const streetMap: React.FC = () => {
         onChangeText={setSearchQuery}
         onSubmitEditing={handleSearch}
       />
-
-      
-      {mapRegion && (
-        <MapView
-          style={styles.map}
-          provider={PROVIDER_DEFAULT}
-          initialRegion={mapRegion}
-          showsUserLocation={true}
-        >
-          <UrlTile
-            urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-            
-          />
-          {polygons.map((polygon, index) => (
-            <Polygon
-              key={index}
-              coordinates={polygon}
-              strokeColor="#FF0000"
-              fillColor="rgba(255,0,0,0.5)"
-              strokeWidth={2}
-            />
-          ))}
-        </MapView>
-      )}
+      <WebView
+        key={webViewKey}
+        style={styles.map}
+        source={{ html: getHtmlContent() }}
+        onError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.warn('WebView error: ', nativeEvent);
+        }}
+      />
     </View>
   );
 };
@@ -190,9 +250,3 @@ const styles = StyleSheet.create({
 });
 
 export default streetMap;
-
-
-
-
-
-

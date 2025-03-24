@@ -20,7 +20,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,10 +43,9 @@
         }
       ],
       [
-        "@react-native-mapbox-gl/maps",
+        "expo-location",
         {
-          "RNMapboxMapsImpl": "mapbox",
-          "RNMapboxMapsAccessToken": "YOUR_MAPBOX_ACCESS_TOKEN"
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ]
     ],
