@@ -49,16 +49,10 @@ const Reservations = () => {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
-                    licensePlateNumber: plateNumber,  
-                    timeRequested: timeRequested,
-                    location: parkingLotId.id,
+                    plate_number: plateNumber,  
+                    time_requested: timeRequested,
+                    parking_lot_id: parkingLotId.id,
                 })
-            });
-
-            console.log({ 
-                licensePlateNumber: plateNumber,  
-                timeRequested: timeRequested,
-                location: parkingLotId.id,
             });
 
             const data = await response.json();
