@@ -1,3 +1,4 @@
+
 import { Stack } from 'expo-router';
 import Splash from './splashPage';
 
