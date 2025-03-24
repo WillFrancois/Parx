@@ -8,51 +8,63 @@ export default function FavoritesPage() {
     const [favLots, setFavLots] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchFavorites = async () => {
-            const isValid = pb.authStore.isValid
+    const fetchFavorites = async () => {
+        const isValid = pb.authStore.isValid
 
-            if (!isValid) {
-                router.replace('/account/loginPage');
-            } else {
-                try {
-                    setLoading(true);
-                    const userId = pb.authStore.record;
-                    if (!userId) throw new Error("User ID not found");
-                    
-                    const response = await fetch(`${API_BASE_URL}/favorites`, {
-                        method: "POST",
-                        headers: {
+        if (!isValid) {
+            router.replace('/account/loginPage');
+        } else {
+            try {
+                setLoading(true);
+                const userId = pb.authStore.record;
+                if (!userId) throw new Error("User ID not found");
+                
+                const response = await fetch(`${API_BASE_URL}/favorites`, {
+                    method: "POST",
+                    headers: {
 
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ id: userId })
-                    });
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ id: userId })
+                });
 
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch favorites");
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error("You do not have permission to view favorites.");
                     }
-
-                    const favorites = await response.json();
-                    setFavLots(favorites);
-                } catch(error) {
-                    console.error(error);
-                    Alert.alert("Error", "Failed to load favorites.")
-                } finally {
-                    setLoading(false);
+                    throw new Error("Failed to fetch favorites");
                 }
-            };
+
+                const favorites = await response.json();
+                setFavLots(favorites);
+            } catch(error) {
+                console.error(error);
+                Alert.alert("Error", "Failed to load favorites.")
+            } finally {
+                setLoading(false);
+            }
         };
-        fetchFavorites()
-        console.log(favLots);
+    };
+
+    useEffect(() => {
+        fetchFavorites();
+
+        const interval = setInterval(() => {
+            fetchFavorites();
+        }, 10000);
+
+        return () => clearInterval(interval);
+        
     }, [])
 
     return (
         <View style={{ flex: 1, padding: 20 }}>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Favorites</Text>
+            <Text style={{ fontSize: 30, fontWeight: 'bold', marginBottom: 10 }}>Favorites</Text>
 
             {loading ? (
                 <ActivityIndicator size="large" color={"#0000ff"} />
+            ) : favLots.length === 0 ? (
+                <Text style={{ fontSize: 20, textAlign: "center", marginTop: 20 }}>You have no favorites yet. Return to the map to pick a parking lot!</Text>
             ) : (
                 <FlatList
                     data={favLots}
