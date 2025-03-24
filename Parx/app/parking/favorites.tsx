@@ -58,8 +58,13 @@ export default function FavoritesPage() {
                     data={favLots}
                     keyExtractor={(item) => item}
                     renderItem={({ item }) => (
-                        <View style={{ padding: 10, borderBottomWidth: 1 }}>
-                            <Text>Lot ID: {item}</Text>
+                        <View style={{ padding: 10, borderBottomWidth: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                            <View>
+                                <Text>Lot ID: {item}</Text>
+                            </View>
+                            <View>        
+                                <Button title="View on Map" onPress={() => router.push('/home')} />
+                            </View>    
                         </View>
                     )}
                 />
