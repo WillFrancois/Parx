@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show nearby parking spots and provide accurate map services.",
+        "NSLocationAlwaysUsageDescription": "Allow continuous location access to improve parking recommendations.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location to find the best parking options near you."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -31,6 +36,13 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "@react-native-mapbox-gl/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox",
+          "RNMapboxMapsAccessToken": "YOUR_MAPBOX_ACCESS_TOKEN"
         }
       ]
     ],

@@ -36,7 +36,15 @@ export default function RootLayout() {
           title: "Account Details",
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="user" color={color} /> 
         }} 
-          />
+        />
+        <Tabs.Screen name="resultsPage" options={{ 
+          title: "Results",  
+          headerShown: true,
+          href: null, // This prevents it from being a tab destination
+          tabBarStyle: { display: "none" } // Hide the tab bar on this screen
+          
+        }} 
+        />
       </Tabs>
     </>
     );
