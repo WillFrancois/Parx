@@ -28,3 +28,15 @@ def add_reservation(plate_number, time_requested, parking_lot_id):
     else:
         return jsonify({"Status": "Failed. Parking lot is already full."})
 
+@verify_db
+def view_reservation(plate_number):
+    collection = client.collection("reservations").get_full_list()
+    row = list(filter(lambda records: records.license_plate_number == plate_number, collection))[0]
+    return jsonify(
+        {
+            "timeRequested": row.time_requested,
+            "timeEnd": row.time_end,
+            "location": row.location,
+            "verification_code": row.verification_code
+        }
+    ), 200
