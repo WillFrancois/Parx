@@ -57,6 +57,34 @@ export default function FavoritesPage() {
         
     }, [])
 
+    const deleteFavorite = async (parkingLotId: string) => {
+        try {
+            setLoading(true);
+            const userId = pb.authStore.record
+            if (!userId) throw new Error("User ID not found.");
+
+            const response = await fetch(`${API_BASE_URL}/favorites/delete`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: userId,
+                    parking_lot_id: parkingLotId,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete favorite");
+            }
+
+            fetchFavorites();
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Error", "Failed to delete favorite.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <View style={{ flex: 1, padding: 20 }}>
             <Text style={{ fontSize: 30, fontWeight: 'bold', marginBottom: 10 }}>Favorites</Text>
@@ -72,11 +100,14 @@ export default function FavoritesPage() {
                     renderItem={({ item }) => (
                         <View style={{ padding: 10, borderBottomWidth: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                             <View>
-                                <Text>Lot ID: {item}</Text>
+                                <Text><Text style={{ fontWeight: "bold" }}>Lot ID:</Text> {item}</Text>
                             </View>
                             <View>        
                                 <Button title="View on Map" onPress={() => router.push('/home')} />
                             </View>    
+                            <View>
+                                <Button title="Delete" onPress={() => deleteFavorite(item)} color="red" />
+                            </View>
                         </View>
                     )}
                 />
