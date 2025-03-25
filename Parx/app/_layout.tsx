@@ -47,8 +47,12 @@ export default function RootLayout() {
           headerShown: true,
           href: null, // This prevents it from being a tab destination
           tabBarStyle: { display: "none" } // Hide the tab bar on this screen
-          
         }} 
+        />
+        <Tabs.Screen name="parking/reservations" options={{
+          title: "Reserve a Spot",
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="calendar-check-o" color={color} />
+        }}
         />
       </Tabs>
     </>
