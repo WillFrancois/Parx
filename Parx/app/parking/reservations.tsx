@@ -1,6 +1,5 @@
 import { pb, API_BASE_URL } from "@/config";
 import { View, Text, Button, Alert, ActivityIndicator, FlatList, TextInput, Modal, TouchableOpacity } from "react-native";
-import { useRouter } from 'expo-router';
 import React, {useState, useEffect} from 'react';
 
 interface ParkingLot {
@@ -14,20 +13,27 @@ interface ParkingLot {
     city_recommended?: boolean;
 }
 
-const Reservations = () => {
+interface ReservationProps {
+    initialParkingLot?: ParkingLot;
+}
+
+const Reservations: React.FC<ReservationProps> = ({ initialParkingLot }) => {
     const [plateNumber, setPlateNumber] = useState<string>('');
     const [timeRequested, setTimeRequested] = useState<string>('');
     const [parkingLotId, setParkingLotId] = useState<ParkingLot | null>(null);
     const [parkingLotData, setParkingLotData] = useState<ParkingLot[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [modalVisible, setModalVisible] = useState<boolean>(false);
-    const router = useRouter();
 
     useEffect(() => {
         const fetchParkingLots = async () => {
             try {
                 const records = await pb.collection("parking_lots").getFullList();
                 setParkingLotData(records)
+
+                if (initialParkingLot && !records.some(lot => lot.id === initialParkingLot.id)) {
+                    setParkingLotData(prevData => [...prevData, initialParkingLot])
+                }
             } catch (error) {
                 console.error(error)
                 Alert.alert("Error", "Failed to load parking lots.");
