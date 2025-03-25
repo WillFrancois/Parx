@@ -36,13 +36,15 @@ export default function AccountDetails() {
             } else if (isValid) {
                 console.log(pb.authStore.record);
                 try {
+                    setUserId(pb.authStore.record as unknown as string);
+                    
                     const userData = await pb.collection('userDetails').getOne(`${pb.authStore.record}`)
                     setUser({
                         email: userData.email,
                         created: userData.created,
                         cityOfficial: userData.cityOfficial,
                     })
-                    setUserId(pb.authStore.record);
+                    
                 } catch (error: any) {
                     Alert.alert("Error", error.message);
                     console.log(error);
