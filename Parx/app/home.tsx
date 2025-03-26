@@ -1,5 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, TextInput, Text, Alert } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+    StyleSheet,
+    View,
+    TextInput,
+    Text,
+    Alert,
+    TouchableOpacity,
+} from "react-native";
 import MapView, { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
@@ -35,6 +42,9 @@ const streetMap: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [parkingLots, setParkingLots] = useState<ParkingLot[]>([]);
     const [webViewKey, setWebViewKey] = useState(0);
+    const webViewRef = useRef<WebView>(null);
+    const [isViewingSearchedLocation, setIsViewingSearchedLocation] =
+        useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -95,7 +105,9 @@ const streetMap: React.FC = () => {
     }, [isCityOfficial]);
 
     useEffect(() => {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || isViewingSearchedLocation) return;
+
+        let isMounted = true;
 
         (async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
@@ -106,7 +118,25 @@ const streetMap: React.FC = () => {
 
             let location = await Location.getCurrentPositionAsync({});
             setLocation(location);
+
+            if (!isViewingSearchedLocation) {
+                setMapRegion({
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                });
+                fetchLocations(
+                    location.coords.latitude,
+                    location.coords.longitude,
+                    0.1
+                );
+            }
         })();
+
+        return () => {
+            isMounted = false;
+        };
     }, [isAuthenticated]);
 
     const fetchLocations = async (
@@ -129,54 +159,50 @@ const streetMap: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        let timer: NodeJS.Timeout;
-
-        if (location) {
-            timer = setTimeout(() => {
-                fetchLocations(
-                    location.coords.latitude,
-                    location.coords.longitude,
-                    0.1
-                );
-            }, 1000);
-        }
-
-        return () => clearTimeout(timer);
-    }, [location]);
-
     const handleSearch = async () => {
         if (!searchQuery) return;
 
+        const isZipCode = /^\d{5}$/.test(searchQuery);
+
         try {
+            setIsViewingSearchedLocation(true);
+
             const response = await fetch(
                 `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
                     searchQuery
-                )}.json?access_token=${MAPBOX_API_KEY}`
+                )}.json?access_token=${MAPBOX_API_KEY}&types=postcode`
             );
             const data = await response.json();
 
             if (data.features && data.features.length > 0) {
                 const { center } = data.features[0];
-                setMapRegion({
+                setIsViewingSearchedLocation(true);
+
+                const newRegion = {
                     latitude: center[1],
                     longitude: center[0],
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
-                });
-                fetchLocations(center[1], center[0], 0.1);
+                };
+                setMapRegion(newRegion);
+                setIsViewingSearchedLocation(true);
 
-                router.push({
-                    pathname: "/resultsPage",
-                    params: { results: JSON.stringify(data.features) },
-                });
+                if (webViewRef.current) {
+                    webViewRef.current.injectJavaScript(`
+                      map.setView([${center[1]}, ${center[0]}], 13);
+                  `);
+                }
+
+                fetchLocations(center[1], center[0], 0.1);
             } else {
                 Alert.alert(
-                    "No results found",
-                    "Please try a different search term."
+                    "Invalid Zip Code",
+                    "Please enter a valid US zip code."
                 );
             }
         } catch (error) {
+            setIsViewingSearchedLocation(false);
+            console.error("Search error:", error);
             Alert.alert(
                 "Error",
                 "An error occurred while searching. Please try again."
@@ -184,18 +210,58 @@ const streetMap: React.FC = () => {
         }
     };
 
-    const getHtmlContent = () => {
-        const currentLocation = location
-            ? {
-                  lat: location.coords.latitude,
-                  lng: location.coords.longitude,
-              }
-            : null;
+    const returnToCurrentLocation = async () => {
+        try {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== "granted") {
+                setErrorMsg("Permission to access location was denied");
+                return;
+            }
 
-        console.log(
-            "Generating HTML with city official status:",
-            isCityOfficial
-        );
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location);
+            setIsViewingSearchedLocation(false);
+
+            const newRegion = {
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+            };
+            setMapRegion(newRegion);
+
+            if (webViewRef.current) {
+                webViewRef.current.injectJavaScript(`
+                map.setView([${location.coords.latitude}, ${location.coords.longitude}], 13);
+            `);
+            }
+
+            fetchLocations(
+                location.coords.latitude,
+                location.coords.longitude,
+                0.1
+            );
+        } catch (error) {
+            console.error("Error returning to current location:", error);
+            Alert.alert("Error", "Unable to get current location.");
+        }
+    };
+
+    const getHtmlContent = () => {
+        const mapCenter =
+            isViewingSearchedLocation && mapRegion
+                ? {
+                      lat: mapRegion.latitude,
+                      lng: mapRegion.longitude,
+                  }
+                : location
+                ? {
+                      lat: location.coords.latitude,
+                      lng: location.coords.longitude,
+                  }
+                : { lat: 40.7128, lng: -74.006 };
+
+        console.log("Map center:", mapCenter);
 
         const safeParking = parkingLots.map((lot) => ({
             id: lot.id,
@@ -209,75 +275,73 @@ const streetMap: React.FC = () => {
         }));
 
         return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-          <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-          <style>
-            body { margin: 0; padding: 0; }
-            #map { height: 100vh; width: 100vw; }
-            .popup-content { padding: 10px; }
-            .popup-title { font-weight: bold; margin-bottom: 5px; }
-            .city-official-controls { 
-              margin-top: 10px;
-              padding-top: 10px;
-              border-top: 1px solid #ccc;
-            }
-            .checkbox-label {
-              display: flex;
-              align-items: center;
-              gap: 5px;
-            }
-          </style>
-        </head>
-        <body>
-          <div id="map"></div>
-          <script>
-            
-            const isCityOfficial = ${
-                isCityOfficial === true
-            }; // Force boolean evaluation
-            console.log('WebView isCityOfficial:', isCityOfficial);
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <style>
+              body { margin: 0; padding: 0; }
+              #map { height: 100vh; width: 100vw; }
+              .popup-content { padding: 10px; }
+              .popup-title { font-weight: bold; margin-bottom: 5px; }
+              .city-official-controls { 
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid #ccc;
+              }
+              .checkbox-label {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              }
+            </style>
+          </head>
+          <body>
+            <div id="map"></div>
+            <script>
+              const isCityOfficial = ${isCityOfficial === true};
+              const mapCenter = ${JSON.stringify(mapCenter)};
+              const parkingLots = ${JSON.stringify(safeParking)};
+              
+              // Initialize map with mapCenter
+              const map = L.map('map').setView(
+                [mapCenter.lat, mapCenter.lng],
+                13
+              );
 
-            const currentLocation = ${JSON.stringify(currentLocation)};
-            const parkingLots = ${JSON.stringify(safeParking)};
-            
-            // Function to update city recommended status
-            function updateCityRecommended(lotId, checked) {
-              console.log('Updating recommendation:', lotId, checked); // Debug log
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'updateRecommended',
-                lotId: lotId,
-                recommended: checked
-              }));
-            }
-  
-            const map = L.map('map').setView(
-              currentLocation ? [currentLocation.lat, currentLocation.lng] : [40.7128, -74.0060],
-              13
-            );
-  
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              maxZoom: 19,
-            }).addTo(map);
-  
-            if (currentLocation) {
-              L.marker([currentLocation.lat, currentLocation.lng])
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+              }).addTo(map);
+
+              // Add marker for current/searched location
+              L.marker([mapCenter.lat, mapCenter.lng])
                 .addTo(map)
-                .bindPopup('Your Location');
-            }
-  
-            parkingLots.forEach(lot => {
-              if (lot.coordinates && lot.coordinates.length > 0) {
-                const polygonCoords = lot.coordinates.map(coord => [coord[1], coord[0]]);
+                .bindPopup(${
+                    isViewingSearchedLocation
+                        ? "'Searched Location'"
+                        : "'Your Location'"
+                });
                 
-                const polygon = L.polygon(polygonCoords, {
-                  color: lot.city_recommended ? 'green' : 'red',
-                  fillColor: lot.city_recommended ? '#0f3' : '#f03',
-                  fillOpacity: 0.5
-                }).addTo(map);
+      
+                parkingLots.forEach(lot => {
+                  if (lot.coordinates && lot.coordinates.length > 0) {
+                    const polygonCoords = lot.coordinates.map(coord => [coord[1], coord[0]]);
+                    
+                    const polygon = L.polygon(polygonCoords, {
+                      color: lot.city_recommended ? 'green' : 'red',
+                      fillColor: lot.city_recommended ? '#0f3' : '#f03',
+                      fillOpacity: 0.5
+                    }).addTo(map);
+
+                L.marker([mapCenter.lat, mapCenter.lng])
+                  .addTo(map)
+                  .bindPopup(${
+                      isViewingSearchedLocation
+                          ? "'Searched Location'"
+                          : "'Your Location'"
+                  });
 
                 let touchTimeout;
                 let touchStartTime;
@@ -412,15 +476,40 @@ const streetMap: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            <TextInput
-                style={styles.searchBar}
-                placeholder="Search..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmitEditing={handleSearch}
-            />
+            <View style={styles.searchContainer}>
+                <TextInput
+                    style={styles.searchBar}
+                    placeholder="Enter ZIP Code"
+                    value={searchQuery}
+                    onChangeText={(text) => {
+                        const numericText = text.replace(/[^0-9]/g, "");
+                        if (numericText.length <= 5) {
+                            setSearchQuery(numericText);
+                        }
+                    }}
+                    keyboardType="numeric"
+                    maxLength={5}
+                    returnKeyType="search"
+                    onSubmitEditing={handleSearch}
+                />
+
+                <TouchableOpacity
+                    style={styles.searchButton}
+                    onPress={handleSearch}
+                >
+                    <Text style={styles.searchButtonText}>Search</Text>
+                </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+                style={styles.currentLocationButton}
+                onPress={returnToCurrentLocation}
+            >
+                <Text style={styles.currentLocationButtonText}>📍</Text>
+            </TouchableOpacity>
 
             <WebView
+                ref={webViewRef}
                 key={`${webViewKey}-${isCityOfficial}`}
                 style={styles.map}
                 source={{ html: getHtmlContent() }}
@@ -477,18 +566,67 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     searchBar: {
-        position: "absolute",
-        top: 10,
-        left: 10,
-        right: 10,
+        flex: 1,
         height: 40,
         backgroundColor: "white",
         borderRadius: 5,
         paddingHorizontal: 10,
-        zIndex: 1,
     },
     map: {
         flex: 1,
+    },
+    searchButton: {
+        backgroundColor: "#007AFF",
+        height: 40,
+        paddingHorizontal: 15,
+        borderRadius: 5,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    searchButtonText: {
+        color: "white",
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    searchContainer: {
+        position: "absolute",
+        top: 10,
+        left: 10,
+        right: 10,
+        flexDirection: "row",
+        zIndex: 1,
+        gap: 10,
+    },
+    currentLocationButton: {
+        position: "absolute",
+        right: 10,
+        bottom: 30,
+        backgroundColor: "white",
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    currentLocationButtonText: {
+        fontSize: 24,
     },
 });
 
