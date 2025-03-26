@@ -10,6 +10,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+
     const handleLogin = async () => {
         setIsLoading(true);
         try {
@@ -20,22 +21,25 @@ export default function Login() {
                 },
                 body: JSON.stringify({ email, password })
             });
-
+    
             if (!response.ok) {
                 throw new Error("Invalid credentials");
             }
             
             const data = await response.json();
-
+    
             if (!data.isValid) {
                 throw new Error("Authentication failed");
             }
-
+            await AsyncStorage.removeItem("guest");
+            
             pb.authStore.save(data.token, data.record);
-            console.log(pb.authStore.isValid);
-            console.log(pb.authStore.token);
-            console.log(pb.authStore.record);
+    
+            const isCityOfficial = email === 'cityofficialtest@ex.com';
 
+            await AsyncStorage.setItem('isCityOfficial', isCityOfficial ? 'true' : 'false');
+            console.log('Login: Stored city official status:', isCityOfficial);
+            
             setIsLoading(false);
             Alert.alert("Login Successful", "Successfully logged in!")
             router.push("/home");
@@ -46,12 +50,13 @@ export default function Login() {
     };
 
     const handleGuestLogin = async () => {
-        try {
-            await AsyncStorage.setItem("guest", "true");
-            router.push("/home");
-        } catch (error) {
-            Alert.alert("Error", "Unable to login as guest.");
-        }
+    try {
+        await AsyncStorage.setItem("guest", "true");
+        await AsyncStorage.setItem('isCityOfficial', 'false');
+        router.push("/home");
+    } catch (error) {
+        Alert.alert("Error", "Unable to login as guest.");
+    }
     };
 
     
