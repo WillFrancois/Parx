@@ -10,11 +10,11 @@ def payment_sheet():
 
   paymentIntent = stripe.PaymentIntent.create(
     amount=1099,
-    currency='eur',
+    currency='usd',
     customer=customer['id'],
   )
 
   return jsonify(paymentIntent=paymentIntent.client_secret,
                  ephemeralKey=ephemeralKey.secret,
                  customer=customer.id,
-                 publishableKey='pk_test_TYooMQauvdEDq54NiTphI7jx')
+                 publishableKey='test_key')
