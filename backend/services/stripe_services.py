@@ -8,8 +8,11 @@ stripe_publishable_key = os.getenv('STRIPE_PK')
 stripe_secret_key = os.getenv('STRIPE_SK')
 stripe.api_key = stripe_secret_key
 
-def create_payment(amount):
-  customer = stripe.Customer.create()
+def create_payment(amount,customer=None):
+  if customer is not None:
+    customer = stripe.Customer.retrieve(customer)
+  else:
+    customer = stripe.Customer.create()
   ephemeralKey = stripe.EphemeralKey.create(
     customer=customer['id'],
     stripe_version='2025-02-24.acacia',
