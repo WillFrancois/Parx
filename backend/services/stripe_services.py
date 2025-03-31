@@ -1,7 +1,14 @@
 import stripe
 from flask import jsonify
+import os
+from dotenv import load_dotenv
 
-def payment_sheet():
+load_dotenv()
+stripe_publishable_key = os.getenv('STRIPE_PK')
+stripe_secret_key = os.getenv('STRIPE_SK')
+stripe.api_key = stripe_secret_key
+
+def create_payment(amount):
   customer = stripe.Customer.create()
   ephemeralKey = stripe.EphemeralKey.create(
     customer=customer['id'],
@@ -9,7 +16,7 @@ def payment_sheet():
   )
 
   paymentIntent = stripe.PaymentIntent.create(
-    amount=1099,
+    amount=amount,
     currency='usd',
     customer=customer['id'],
   )
@@ -17,4 +24,4 @@ def payment_sheet():
   return jsonify(paymentIntent=paymentIntent.client_secret,
                  ephemeralKey=ephemeralKey.secret,
                  customer=customer.id,
-                 publishableKey='test_key')
+                 publishableKey=stripe_publishable_key)
