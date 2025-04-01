@@ -183,7 +183,7 @@ export default function AccountDetails() {
                             width: "80%",
                             alignSelf: "center"
                         }}
-                        placeholder="Enter LIcense Plate Number"
+                        placeholder="Enter License Plate Number"
                         value={plateNumber}
                         onChangeText={setPlateNumber}
                     />
