@@ -1,5 +1,6 @@
 import { pb, API_BASE_URL } from "@/config";
 import { View, Text, Button, Alert, ActivityIndicator, FlatList, TextInput, Modal, TouchableOpacity } from "react-native";
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, {useState, useEffect} from 'react';
 
 interface ParkingLot {
@@ -13,17 +14,15 @@ interface ParkingLot {
     city_recommended?: boolean;
 }
 
-interface ReservationProps {
-    initialParkingLot?: ParkingLot;
-}
-
-const Reservations: React.FC<ReservationProps> = ({ initialParkingLot }) => {
+const Reservations = () => {
     const [plateNumber, setPlateNumber] = useState<string>('');
     const [timeRequested, setTimeRequested] = useState<string>('');
-    const [parkingLotId, setParkingLotId] = useState<ParkingLot | null>(null);
     const [parkingLotData, setParkingLotData] = useState<ParkingLot[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const { lotData } = useLocalSearchParams();
+    const initialParkingLot = lotData ? JSON.parse(lotData as string) : null;
+    const [parkingLotId, setParkingLotId] = useState<ParkingLot | null>(initialParkingLot);
 
     useEffect(() => {
         const fetchParkingLots = async () => {
