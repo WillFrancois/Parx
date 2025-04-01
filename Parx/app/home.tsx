@@ -49,40 +49,90 @@ const streetMap: React.FC = () => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                console.log("Checking authentication...");
-                const isValid = pb.authStore.isValid;
-                const guest = await AsyncStorage.getItem("guest");
-                const storedCityOfficialStatus = await AsyncStorage.getItem(
-                    "isCityOfficial"
-                );
+                console.log("Starting authentication check...");
 
-                console.log("Auth Check:", {
-                    isValid,
-                    guest,
-                    storedCityOfficialStatus,
+                console.log("Full Auth Store State:", {
+                    isValid: pb.authStore.isValid,
+                    token: pb.authStore.token,
+                    model: pb.authStore.model,
                 });
 
-                if (!isValid && !guest) {
-                    console.log("Not authenticated, redirecting...");
-                    router.replace("/account/loginPage");
-                    return;
+                const isValid = pb.authStore.isValid;
+                const guest = await AsyncStorage.getItem("guest");
+
+                if (isValid && pb.authStore.token) {
+                    try {
+                        const authData = await pb
+                            .collection("users")
+                            .authRefresh();
+                        console.log("Auth Refresh Data:", authData);
+
+                        if (authData && authData.record) {
+                            const isCityOff = Boolean(
+                                authData.record.cityOfficial
+                            );
+                            console.log("User Record:", authData.record);
+                            console.log("City Official Status:", isCityOff);
+
+                            setIsCityOfficial(isCityOff);
+                            await AsyncStorage.setItem(
+                                "isCityOfficial",
+                                isCityOff.toString()
+                            );
+                            setIsAuthenticated(true);
+                            return;
+                        }
+                    } catch (refreshError) {
+                        console.error("Auth refresh error:", refreshError);
+
+                        try {
+                            const currentUser = await pb
+                                .collection("users")
+                                .getList(1, 1, {
+                                    filter: `email = "${pb.authStore.record?.email}"`,
+                                });
+
+                            console.log("Current User List:", currentUser);
+
+                            if (currentUser.items.length > 0) {
+                                const userData = currentUser.items[0];
+                                const isCityOff = Boolean(
+                                    userData.cityOfficial
+                                );
+                                console.log("Found user data:", userData);
+                                console.log(
+                                    "Setting city official to:",
+                                    isCityOff
+                                );
+
+                                setIsCityOfficial(isCityOff);
+                                await AsyncStorage.setItem(
+                                    "isCityOfficial",
+                                    isCityOff.toString()
+                                );
+                                setIsAuthenticated(true);
+                                return;
+                            }
+                        } catch (listError) {
+                            console.error("User list error:", listError);
+                        }
+                    }
                 }
 
-                setIsAuthenticated(true);
-
-                if (isValid && !guest) {
-                    console.log(
-                        "Logged in user, setting city official status:",
-                        storedCityOfficialStatus
-                    );
-                    setIsCityOfficial(storedCityOfficialStatus === "true");
-                } else {
-                    console.log("Guest user, setting city official to false");
+                if (guest === "true") {
+                    console.log("Setting up guest user");
+                    setIsAuthenticated(true);
                     setIsCityOfficial(false);
                     await AsyncStorage.setItem("isCityOfficial", "false");
+                } else if (!isValid && !guest) {
+                    console.log("Not authenticated, redirecting...");
+                    router.replace("/account/loginPage");
                 }
             } catch (error) {
-                console.error("Authentication error:", error);
+                console.error(
+                    "Main authentication error:",
+                    error instanceof Error ? error.message : String(error)
+                );
                 router.replace("/account/loginPage");
             }
         };
@@ -324,16 +374,25 @@ const streetMap: React.FC = () => {
                         : "'Your Location'"
                 });
                 
-      
+                function updateCityRecommended(lotId, recommended) {
+                    console.log('Updating lot:', lotId, 'to:', recommended);
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'updateRecommended',
+                        lotId: lotId,
+                        recommended: recommended
+                    }));
+                }
                 parkingLots.forEach(lot => {
                   if (lot.coordinates && lot.coordinates.length > 0) {
                     const polygonCoords = lot.coordinates.map(coord => [coord[1], coord[0]]);
                     
                     const polygon = L.polygon(polygonCoords, {
-                      color: lot.city_recommended ? 'green' : 'red',
-                      fillColor: lot.city_recommended ? '#0f3' : '#f03',
-                      fillOpacity: 0.5
-                    }).addTo(map);
+                        color: lot.city_recommended ? 'green' : 'red',
+                        fillColor: lot.city_recommended ? '#0f3' : '#f03',
+                        fillOpacity: 0.5
+                    });
+                    polygon._lotId = lot.id; // Add this line
+                    polygon.addTo(map);
 
                 L.marker([mapCenter.lat, mapCenter.lng])
                   .addTo(map)
@@ -520,30 +579,71 @@ const streetMap: React.FC = () => {
                 onMessage={async (event) => {
                     try {
                         const data = JSON.parse(event.nativeEvent.data);
+                        console.log("Received message:", data);
+
                         if (data.type === "updateRecommended") {
-                            const isGuest = await AsyncStorage.getItem("guest");
-                            if (isGuest === "true") {
-                                console.log(
-                                    "Guest user cannot update recommendations"
+                            try {
+                                if (!pb.authStore.record?.id) {
+                                    Alert.alert(
+                                        "Error",
+                                        "User not authenticated"
+                                    );
+                                    return;
+                                }
+
+                                const userData = await pb
+                                    .collection("users")
+                                    .getOne(pb.authStore.record.id);
+                                if (!userData.cityOfficial) {
+                                    Alert.alert(
+                                        "Permission Denied",
+                                        "Only city officials can update recommendations."
+                                    );
+                                    return;
+                                }
+
+                                // Update the lot
+                                await pb
+                                    .collection("parking_lots")
+                                    .update(data.lotId, {
+                                        city_recommended: data.recommended,
+                                    });
+
+                                await fetchLocations(
+                                    location?.coords.latitude || 40.7128,
+                                    location?.coords.longitude || -74.006,
+                                    0.1
                                 );
+
+                                setWebViewKey((prev) => prev + 1);
+
+                                if (webViewRef.current) {
+                                    const updateScript = `
+                                        document.querySelectorAll('.leaflet-interactive').forEach(polygon => {
+                                            if (polygon._lotId === '${data.lotId}') {
+                                                polygon.setStyle({
+                                                    color: ${data.recommended} ? 'green' : 'red',
+                                                    fillColor: ${data.recommended} ? '#0f3' : '#f03'
+                                                });
+                                            }
+                                        });
+                                    `;
+                                    webViewRef.current.injectJavaScript(
+                                        updateScript
+                                    );
+                                }
+
                                 Alert.alert(
-                                    "Permission Denied",
-                                    "Guest users cannot make recommendations."
+                                    "Success",
+                                    "Parking lot recommendation updated!"
                                 );
-                                return;
+                            } catch (error) {
+                                console.error("Error updating lot:", error);
+                                Alert.alert(
+                                    "Error",
+                                    "Failed to update parking lot"
+                                );
                             }
-
-                            await pb
-                                .collection("parking_lots")
-                                .update(data.lotId, {
-                                    city_recommended: data.recommended,
-                                });
-
-                            fetchLocations(
-                                location?.coords.latitude || 40.7128,
-                                location?.coords.longitude || -74.006,
-                                0.1
-                            );
                         } else if (data.type === "navigateToResults") {
                             router.push({
                                 pathname: "/resultsPage",
