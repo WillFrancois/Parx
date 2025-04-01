@@ -4,15 +4,21 @@ import React, { useState } from "react";
 import { API_BASE_URL } from "@/config";
 import { useStripe } from "@stripe/stripe-react-native";
 
+interface ParkingLot {
+    id: string;
+    object_id?: number;
+    price_per_hour?: number;
+}
+
 const ConfirmReservation = () => {
     const router = useRouter();
-    const { plateNumber, timeRequested, parkingLotId, cardNumber } = useLocalSearchParams();
+    const { plateNumber, timeRequested, parkingLotId, paymentMethodId} = useLocalSearchParams();
     const parsedParkingLot = parkingLotId ? JSON.parse(parkingLotId as string) : null;
     const [loading, setLoading] = useState(false);
     const { confirmPayment } = useStripe();
 
     const handleConfirmAndPay = async () => {
-        if (!plateNumber || !timeRequested || !parsedParkingLot || !cardNumber) {
+        if (!plateNumber || !timeRequested || !parsedParkingLot || !paymentMethodId) {
             Alert.alert("Error", "Missing information. Please check your details.");
             return;
         }
@@ -30,9 +36,8 @@ const ConfirmReservation = () => {
             
             const paymentData = await paymentResponse.json();
             console.log("Stripe Payment Response:", paymentData);
-
-            if (!paymentData.paymentIntent) {
-                Alert.alert("Payment Error", "Payment failed.");
+            if(!paymentData.clientSecret) {
+                Alert.alert("Payment Error", "Failed to initialize payment.");
                 setLoading(false);
                 return;
             }
@@ -40,6 +45,9 @@ const ConfirmReservation = () => {
             // Step 2: Confirm Payment using Stripe
             const { error, paymentIntent } = await confirmPayment(paymentData.paymentIntent, {
                 paymentMethodType: "Card",
+                paymentMethodData: {
+                    paymentMethodId: String(paymentMethodId),
+                }
             });
 
             if (error) {
@@ -67,12 +75,14 @@ const ConfirmReservation = () => {
             });
 
             const reservationData = await reservationResponse.json();
+
             if (reservationData.verification_code) {
                 Alert.alert("Success!", `Reservation created! Verification Code: ${reservationData.verification_code}`);
                 router.replace('/home');
             } else {
                 Alert.alert("Error", reservationData.Status || "Failed to create reservation");
             }
+
         } catch (error) {
             Alert.alert("Error", "Something went wrong.");
             console.error(error)
@@ -87,7 +97,6 @@ const ConfirmReservation = () => {
             <Text>License Plate: {plateNumber}</Text>
             <Text>Time Requested: {timeRequested}</Text>
             <Text>Parking Lot: {parsedParkingLot?.object_id} - ${parsedParkingLot?.price_per_hour}/hr</Text>
-            <Text>Card Number: **** **** **** {cardNumber?.slice(-4)}</Text>
 
             {loading ? (
                 <ActivityIndicator size="large" />
