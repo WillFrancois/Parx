@@ -1,0 +1,38 @@
+name: Build and Release Parx
+run-name: ${{ github.actor }} is building and releasing the updated version of Parx
+on:
+  push:
+    branches:
+      - "main"
+      - "develop"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  create-parx-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Access the proper folder for application set-up
+        run: mkdir /var/ParxApp; cd /var/Parxapp
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '21'
+
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Access frontend folder
+        run: cd Parx
+
+      - name: Install necessary packages
+        run: npm install
+
+      - name: Prebuild application
+        run: npx expo prebuild
+
+      - name: Access android folder and build application
+        run: cd android; ./gradlew assembleRelease
