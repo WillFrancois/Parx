@@ -18,20 +18,14 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Show directories as debug
-        run: ls
-
-      - name: Access frontend folder
-        run: cd Parx
-
-      - name: Show directories as debug
-        run: ls
-
       - name: Install necessary packages
+        working-directory: ./Parx
         run: npm install
 
       - name: Prebuild application
+        working-directory: ./Parx
         run: npx expo prebuild
 
       - name: Access android folder and build application
-        run: cd android; ./gradlew assembleRelease
+        working-directory: ./Parx/android
+        run: ./gradlew assembleRelease
