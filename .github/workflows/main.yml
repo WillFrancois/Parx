@@ -6,9 +6,6 @@ jobs:
   create-parx-build:
     runs-on: ubuntu-latest
     steps:
-      - name: Access the proper folder for application set-up
-        run: mkdir /var/ParxApp; cd /var/Parxapp
-
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
