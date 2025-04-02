@@ -19,6 +19,7 @@ jobs:
         run: cd Parx
 
       - name: Install necessary packages
+        uses: actions/npm-install@v1
         run: npm install
 
       - name: Prebuild application
