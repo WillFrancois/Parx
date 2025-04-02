@@ -2,16 +2,28 @@ import stripe
 from flask import jsonify
 import os
 from dotenv import load_dotenv
-from database_services import verify_db
+from .database_services import verify_db, client
 
 load_dotenv()
 stripe_publishable_key = os.getenv('STRIPE_PK')
 stripe_secret_key = os.getenv('STRIPE_SK')
 stripe.api_key = stripe_secret_key
 
+@verify_db
+def set_customer(customer_id):
+  if customer_id:
+    customer = client.collection("parking_lots").get_one(f'{customer_id}') 
+    stripe_id = customer.customerKey
+  if stripe_id:
+    return stripe.Customer.retrieve(stripe_id)
+  else:
+    return stripe.Customer.create()
 
-def create_payment(amount,customer=None):
-  customer = stripe.Customer.create()
+
+def create_payment(amount,customer_id=None):
+  
+  customer = set_customer(customer_id)
+
   ephemeralKey = stripe.EphemeralKey.create(
     customer=customer['id'],
     stripe_version='2025-02-24.acacia',

@@ -3,4 +3,7 @@ from flask import request
 
 def create():
     data = request.json
-    return create_payment(data['amount'])
+    try:
+        return create_payment(data['amount'],data['user_id'])
+    except:
+        return create_payment(data['amount'])
