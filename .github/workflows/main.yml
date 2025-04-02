@@ -23,7 +23,8 @@ jobs:
 
       - name: Prebuild application
         uses: mikeal/npx@master
-        args: "expo prebuild"
+        with:
+          args: "expo prebuild"
 
       - name: Access android folder and build application
         run: cd android; ./gradlew assembleRelease
