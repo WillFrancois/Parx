@@ -15,17 +15,15 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Add NPM
-        uses: bahmutov/npm-install@v1
-
       - name: Access frontend folder
         run: cd Parx
 
       - name: Install necessary packages
-        run: npm install
+        uses: bahmutov/npm-install@v1
 
       - name: Prebuild application
-        run: npx expo prebuild
+        uses: mikeal/npx@master
+        args: "expo prebuild"
 
       - name: Access android folder and build application
         run: cd android; ./gradlew assembleRelease
