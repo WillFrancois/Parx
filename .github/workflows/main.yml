@@ -18,8 +18,8 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Access frontend folder
-        run: cd Parx
+      # - name: Access frontend folder
+      #   run: cd Parx
 
       - name: Install necessary packages
         run: npm install
