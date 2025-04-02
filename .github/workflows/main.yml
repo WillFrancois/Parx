@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Add NPM
-        uses: actions/npm-install@v1
+        uses: bahmutov/npm-install@v1
 
       - name: Access frontend folder
         run: cd Parx
