@@ -15,11 +15,13 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
+      - name: Add NPM
+        uses: actions/npm-install@v1
+
       - name: Access frontend folder
         run: cd Parx
 
       - name: Install necessary packages
-        uses: actions/npm-install@v1
         run: npm install
 
       - name: Prebuild application
