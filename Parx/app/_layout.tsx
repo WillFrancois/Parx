@@ -59,11 +59,13 @@ export default function RootLayout() {
         <Tabs.Screen name="checkout/paymentInfo" options={{
           title: "Payment Info",
           href: null,
+          tabBarStyle: { display: "none" }
         }}
         />
         <Tabs.Screen name="checkout/confirmReservation" options={{
           title: "Confirm Reservation",
           href: null,
+          tabBarStyle: { display: "none" }
         }}
         />
       </Tabs>

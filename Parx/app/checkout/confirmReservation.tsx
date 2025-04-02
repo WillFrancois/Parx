@@ -36,11 +36,11 @@ const ConfirmReservation = () => {
             
             const paymentData = await paymentResponse.json();
             console.log("Stripe Payment Response:", paymentData);
-            if(!paymentData.clientSecret) {
-                Alert.alert("Payment Error", "Failed to initialize payment.");
-                setLoading(false);
-                return;
-            }
+            //if(!paymentData.clientSecret) {
+            //    Alert.alert("Payment Error", "Failed to initialize payment.");
+            //    setLoading(false);
+            //    return;
+            //}
 
             // Step 2: Confirm Payment using Stripe
             const { error, paymentIntent } = await confirmPayment(paymentData.paymentIntent, {
@@ -103,6 +103,7 @@ const ConfirmReservation = () => {
             ) : (
                 <Button title="Confirm & Pay" onPress={handleConfirmAndPay} />
             )}
+            <Button title="Change Reservation" onPress={() => router.push('/parking/reservations')} />
         </View>
     )
 }
