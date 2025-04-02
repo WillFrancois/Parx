@@ -24,8 +24,4 @@ jobs:
 
       - name: Prebuild application
         working-directory: ./Parx
-        run: npx expo prebuild
-
-      - name: Access android folder and build application
-        working-directory: ./Parx/android
-        run: ./gradlew assembleRelease
+        run: npx eas-cli build --platform android --local
