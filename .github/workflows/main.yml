@@ -1,13 +1,6 @@
 name: Build and Release Parx
 run-name: ${{ github.actor }} is building and releasing the updated version of Parx
-on:
-  push:
-    branches:
-      - "main"
-      - "develop"
-  pull_request:
-    branches:
-      - "main"
+on: [push, pull_request]
 
 jobs:
   create-parx-build:
