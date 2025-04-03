@@ -13,7 +13,7 @@ stripe.api_key = stripe_secret_key
 def set_customer(customer_id):
   if customer_id:
     customer = client.collection("users").get_one(f'{customer_id}') 
-    stripe_id = customer.customerKey
+    stripe_id = customer.id
   if stripe_id:
     return stripe.Customer.retrieve(stripe_id)
   else:
