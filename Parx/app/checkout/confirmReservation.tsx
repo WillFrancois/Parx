@@ -1,7 +1,7 @@
 import { View, Text, Button, Alert, ActivityIndicator } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { API_BASE_URL } from "@/config";
+import { API_BASE_URL, pb } from "@/config";
 import { useStripe } from "@stripe/stripe-react-native";
 
 interface ParkingLot {
@@ -26,24 +26,22 @@ const ConfirmReservation = () => {
         setLoading(true);
         try {
             // Step 1: Process Payment
-            const paymentResponse = await fetch (`${API_BASE_URL}/payment/create`, {
+            const paymentResponse = await fetch(`${API_BASE_URL}/payment/create`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     amount: parsedParkingLot.price_per_hour * 100, 
+                    user_id: pb.authStore.record,
                 }) 
             });
             
             const paymentData = await paymentResponse.json();
             console.log("Stripe Payment Response:", paymentData);
-            //if(!paymentData.clientSecret) {
-            //    Alert.alert("Payment Error", "Failed to initialize payment.");
-            //    setLoading(false);
-            //    return;
-            //}
+            
+            const { paymentIntent } = paymentData
 
             // Step 2: Confirm Payment using Stripe
-            const { error, paymentIntent } = await confirmPayment(paymentData.paymentIntent, {
+            const { error, paymentIntent: confirmedPaymentIntent } = await confirmPayment(paymentIntent, {
                 paymentMethodType: "Card",
                 paymentMethodData: {
                     paymentMethodId: String(paymentMethodId),
@@ -57,14 +55,14 @@ const ConfirmReservation = () => {
                 return;
             }
 
-            if (paymentIntent?.status !== "Succeeded") {
+            if (confirmedPaymentIntent?.status !== "Succeeded") {
                 Alert.alert("Payment Error", "Payment was not successful.");
                 setLoading(false);
                 return;
             }
 
             // Step 3: Create Reservation
-            const reservationResponse = await fetch (`${API_BASE_URL}/reservation`, {
+            const reservationResponse = await fetch(`${API_BASE_URL}/reservation`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -109,31 +107,3 @@ const ConfirmReservation = () => {
 }
 
 export default ConfirmReservation;
-/* setLoading (true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/reservation`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    plate_number: plateNumber,  
-                    time_requested: timeRequested,
-                    parking_lot_id: parkingLotId.id,
-                })
-            });
-
-            const data = await response.json();
-            if (data.verification_code) {
-                Alert.alert("Success!", `Reservation created! Verification Code: ${data.verification_code}`);
-                setPlateNumber("");
-                setTimeRequested("");
-                setParkingLotId(null);
-            } else {
-                Alert.alert("Error", data.Status || "Failed to create reservation");
-            }
-        } catch (error) {
-            Alert.alert("Error", "Failed to connect to the server.");
-            console.error(error)
-        } finally {
-            setLoading(false);
-        }
-    }; */

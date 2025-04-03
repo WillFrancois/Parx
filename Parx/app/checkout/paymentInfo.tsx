@@ -77,7 +77,7 @@ const PaymentInfo = () => {
                 <Text style={{ fontSize: 30, fontWeight: "bold", marginBottom: 10 }}>Enter Payment Information</Text>
                 <Text>Parking Lot: Lot {parsedParkingLot?.object_id} - ${parsedParkingLot?.price_per_hour}/hr</Text>
                 <Text>Time Requested: {timeRequested}</Text>
-    `           
+                         
                 <Text style={{ fontSize: 20, paddingTop: 10 }}>Billing Information</Text>
                 <TextInput placeholder="Full Name" value={name} onChangeText={setName} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
                 <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={{ borderBottomWidth: 1, marginBottom: 10 }} keyboardType="email-address" />
