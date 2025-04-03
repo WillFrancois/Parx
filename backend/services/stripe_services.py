@@ -11,24 +11,21 @@ stripe.api_key = stripe_secret_key
 
 @verify_db
 def set_customer(customer_id):
+  print(customer_id)
   if customer_id:
-    customer = client.collection("users").get_one(f'{customer_id}') 
-    stripe_id = customer.id
-  if stripe_id:
-    return stripe.Customer.retrieve(stripe_id)
-  else:
-    customer = stripe.Customer.create()
-    client.collection('users').update(customer_id,{
-      "customerKey": f"{customer['id']}"
-    })
-    return customer
+    customer = client.collection("users").get_one(f"{customer_id}")
+    if customer.customer_key:
+      stripe_id = stripe.Customer.retrieve(customer.customer_key)
+    else:
+      stripe_id = stripe.Customer.create()
+      client.collection("users").update(customer_id,{
+        "customer_key":stripe_id["id"]
+      })
   
-@verify_db
-def check_customer(customer_id):
-  customer = client.collection('user').get_one(customer_id)
-  return customer.customerKey
+  return stripe_id
 
-
+  
+  
 def create_payment(amount,customer_id=None):
   
   customer = set_customer(customer_id)
@@ -51,6 +48,3 @@ def create_payment(amount,customer_id=None):
                  publishableKey=stripe_publishable_key)
 
 
-
-def get_orders(customer_id):
-  pass
