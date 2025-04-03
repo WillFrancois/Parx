@@ -11,7 +11,7 @@ import MapView, { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { pb } from "@/config";
+import { API_BASE_URL, pb } from "@/config";
 import { MAPBOX_API_KEY } from "@/config";
 import { WebView } from "react-native-webview";
 
@@ -45,6 +45,78 @@ const streetMap: React.FC = () => {
     const webViewRef = useRef<WebView>(null);
     const [isViewingSearchedLocation, setIsViewingSearchedLocation] =
         useState(false);
+    const updateParkingLotRecommendation = async (
+        lotId: string,
+        recommended: boolean
+    ) => {
+        try {
+            const userId = pb.authStore.record?.id;
+            if (!userId) throw new Error("User ID not found.");
+
+            console.log("Sending recommendation update:", {
+                userId,
+                lotId,
+                recommended,
+                url: `${API_BASE_URL}/parkinglot/recommend`,
+            });
+
+            const response = await fetch(
+                `${API_BASE_URL}/parkinglot/recommend`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${pb.authStore.token}`, 
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        parking_lot_id: lotId, 
+                        city_recommended: recommended,
+                    }),
+                }
+            );
+
+            const responseData = await response.json();
+            console.log("Server response:", responseData);
+
+            if (!response.ok) {
+                throw new Error(
+                    responseData.message || "Failed to update recommendation"
+                );
+            }
+
+            if (webViewRef.current) {
+                const updateScript = `
+                    document.querySelectorAll('.leaflet-interactive').forEach(polygon => {
+                        if (polygon._lotId === '${lotId}') {
+                            polygon.setStyle({
+                                color: ${recommended} ? 'green' : 'red',
+                                fillColor: ${recommended} ? '#0f3' : '#f03'
+                            });
+                        }
+                    });
+                `;
+                webViewRef.current.injectJavaScript(updateScript);
+            }
+
+            await fetchLocations(
+                location?.coords.latitude || 40.7128,
+                location?.coords.longitude || -74.006,
+                0.1
+            );
+
+            Alert.alert(
+                "Success",
+                "Parking lot recommendation updated successfully!"
+            );
+        } catch (error) {
+            console.error("Error updating parking lot:", {
+                error,
+                message: error instanceof Error ? error.message : String(error),
+            });
+            Alert.alert("Error", "Failed to update parking lot recommendation");
+        }
+    };
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -375,7 +447,6 @@ const streetMap: React.FC = () => {
                 });
                 
                 function updateCityRecommended(lotId, recommended) {
-                    console.log('Updating lot:', lotId, 'to:', recommended);
                     window.ReactNativeWebView.postMessage(JSON.stringify({
                         type: 'updateRecommended',
                         lotId: lotId,
@@ -579,71 +650,11 @@ const streetMap: React.FC = () => {
                 onMessage={async (event) => {
                     try {
                         const data = JSON.parse(event.nativeEvent.data);
-                        console.log("Received message:", data);
-
                         if (data.type === "updateRecommended") {
-                            try {
-                                if (!pb.authStore.record?.id) {
-                                    Alert.alert(
-                                        "Error",
-                                        "User not authenticated"
-                                    );
-                                    return;
-                                }
-
-                                const userData = await pb
-                                    .collection("users")
-                                    .getOne(pb.authStore.record.id);
-                                if (!userData.cityOfficial) {
-                                    Alert.alert(
-                                        "Permission Denied",
-                                        "Only city officials can update recommendations."
-                                    );
-                                    return;
-                                }
-
-                                // Update the lot
-                                await pb
-                                    .collection("parking_lots")
-                                    .update(data.lotId, {
-                                        city_recommended: data.recommended,
-                                    });
-
-                                await fetchLocations(
-                                    location?.coords.latitude || 40.7128,
-                                    location?.coords.longitude || -74.006,
-                                    0.1
-                                );
-
-                                setWebViewKey((prev) => prev + 1);
-
-                                if (webViewRef.current) {
-                                    const updateScript = `
-                                        document.querySelectorAll('.leaflet-interactive').forEach(polygon => {
-                                            if (polygon._lotId === '${data.lotId}') {
-                                                polygon.setStyle({
-                                                    color: ${data.recommended} ? 'green' : 'red',
-                                                    fillColor: ${data.recommended} ? '#0f3' : '#f03'
-                                                });
-                                            }
-                                        });
-                                    `;
-                                    webViewRef.current.injectJavaScript(
-                                        updateScript
-                                    );
-                                }
-
-                                Alert.alert(
-                                    "Success",
-                                    "Parking lot recommendation updated!"
-                                );
-                            } catch (error) {
-                                console.error("Error updating lot:", error);
-                                Alert.alert(
-                                    "Error",
-                                    "Failed to update parking lot"
-                                );
-                            }
+                            await updateParkingLotRecommendation(
+                                data.lotId,
+                                data.recommended
+                            );
                         } else if (data.type === "navigateToResults") {
                             router.push({
                                 pathname: "/resultsPage",
