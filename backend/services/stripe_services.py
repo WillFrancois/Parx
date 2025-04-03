@@ -12,18 +12,27 @@ stripe.api_key = stripe_secret_key
 @verify_db
 def set_customer(customer_id):
   if customer_id:
-    customer = client.collection("parking_lots").get_one(f'{customer_id}') 
+    customer = client.collection("users").get_one(f'{customer_id}') 
     stripe_id = customer.customerKey
   if stripe_id:
     return stripe.Customer.retrieve(stripe_id)
   else:
-    return stripe.Customer.create()
+    customer = stripe.Customer.create()
+    client.collection('users').update(customer_id,{
+      "customerKey": f"{customer['id']}"
+    })
+    return customer
+  
+@verify_db
+def check_customer(customer_id):
+  customer = client.collection('user').get_one(customer_id)
+  return customer.customerKey
 
 
 def create_payment(amount,customer_id=None):
   
   customer = set_customer(customer_id)
-
+  
   ephemeralKey = stripe.EphemeralKey.create(
     customer=customer['id'],
     stripe_version='2025-02-24.acacia',
@@ -35,6 +44,7 @@ def create_payment(amount,customer_id=None):
     customer=customer['id'],
   )
 
+
   return jsonify(paymentIntent=paymentIntent.client_secret,
                  ephemeralKey=ephemeralKey.secret,
                  customer=customer.id,
@@ -42,5 +52,5 @@ def create_payment(amount,customer_id=None):
 
 
 
-def get_orders(customer):
+def get_orders(customer_id):
   pass
