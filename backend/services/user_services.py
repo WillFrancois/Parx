@@ -21,6 +21,8 @@ def create_user(email,password,emailVisibility=False,verified=False,cityOfficial
     )
     return jsonify({"id":result.id,"email":result.email}), 201
 
+
+
 @verify_db
 def verify_user(email, password):
     password_hashed = hash_password(password).decode()

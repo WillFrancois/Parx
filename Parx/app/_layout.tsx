@@ -1,12 +1,14 @@
 import { Tabs } from "expo-router";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useState, useEffect } from "react";
+import { STRIPE_PK } from "@/config";
+import { StripeProvider } from "@stripe/stripe-react-native"
 
 export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <>
+    <StripeProvider publishableKey={STRIPE_PK}>
       <Tabs >
         <Tabs.Screen name="index" options={{ 
           href: null,
@@ -53,8 +55,20 @@ export default function RootLayout() {
           title: "Reserve a Spot",
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="calendar-check-o" color={color} />
         }}
+        />  
+        <Tabs.Screen name="checkout/paymentInfo" options={{
+          title: "Payment Info",
+          href: null,
+          tabBarStyle: { display: "none" }
+        }}
+        />
+        <Tabs.Screen name="checkout/confirmReservation" options={{
+          title: "Confirm Reservation",
+          href: null,
+          tabBarStyle: { display: "none" }
+        }}
         />
       </Tabs>
-    </>
+    </StripeProvider>
     );
 }

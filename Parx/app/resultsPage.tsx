@@ -124,7 +124,19 @@ const ResultsPage: React.FC = () => {
                         ]}
                     />
                 </View>
+                <TouchableOpacity
+                style={styles.reserveButton}
+                onPress={() => {
+                    router.push({
+                        pathname: '/parking/reservations',
+                        params: { lotData: JSON.stringify(parkingLot) },
+                    });
+                }}
+            >
+                <Text style={styles.reserveButtonText}>Reserve a Spot</Text>
+            </TouchableOpacity>
             </View>
+            
         </ScrollView>
     );
 };
@@ -227,6 +239,18 @@ const styles = StyleSheet.create({
     lowOccupancy: {
         backgroundColor: "#4CAF50",
     },
+    reserveButton: {
+        marginTop: 20,
+        backgroundColor: "#007AFF",
+        padding: 15,
+        borderRadius: 8,
+        alignItems: "center",
+    }, 
+    reserveButtonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+    }
 });
 
 export default ResultsPage;

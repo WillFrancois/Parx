@@ -1,5 +1,6 @@
 import { pb, API_BASE_URL } from "@/config";
 import { View, Text, Button, Alert, ActivityIndicator, FlatList, TextInput, Modal, TouchableOpacity } from "react-native";
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, {useState, useEffect} from 'react';
 
 interface ParkingLot {
@@ -13,17 +14,16 @@ interface ParkingLot {
     city_recommended?: boolean;
 }
 
-interface ReservationProps {
-    initialParkingLot?: ParkingLot;
-}
-
-const Reservations: React.FC<ReservationProps> = ({ initialParkingLot }) => {
+const Reservations = () => {
     const [plateNumber, setPlateNumber] = useState<string>('');
     const [timeRequested, setTimeRequested] = useState<string>('');
-    const [parkingLotId, setParkingLotId] = useState<ParkingLot | null>(null);
     const [parkingLotData, setParkingLotData] = useState<ParkingLot[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const { lotData } = useLocalSearchParams();
+    const initialParkingLot = lotData ? JSON.parse(lotData as string) : null;
+    const [parkingLotId, setParkingLotId] = useState<ParkingLot | null>(initialParkingLot);
+    const router = useRouter();
 
     useEffect(() => {
         const fetchParkingLots = async () => {
@@ -43,40 +43,21 @@ const Reservations: React.FC<ReservationProps> = ({ initialParkingLot }) => {
         fetchParkingLots();
     }, [])
 
-    const handleCreateReservation = async () => {
+    const handleProceedToPayment = async () => {
         if (!plateNumber || !timeRequested || !parkingLotId) {
             Alert.alert("Error", "Please fill in all fields.");
             return;
         }
-
-        setLoading (true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/reservation`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    plate_number: plateNumber,  
-                    time_requested: timeRequested,
-                    parking_lot_id: parkingLotId.id,
-                })
-            });
-
-            const data = await response.json();
-            if (data.verification_code) {
-                Alert.alert("Success!", `Reservation created! Verification Code: ${data.verification_code}`);
-                setPlateNumber("");
-                setTimeRequested("");
-                setParkingLotId(null);
-            } else {
-                Alert.alert("Error", data.Status || "Failed to create reservation");
+        router.push({
+            pathname: "/checkout/paymentInfo",
+            params: {
+                plateNumber,
+                timeRequested,
+                parkingLotId: JSON.stringify(parkingLotId),
             }
-        } catch (error) {
-            Alert.alert("Error", "Failed to connect to the server.");
-            console.error(error)
-        } finally {
-            setLoading(false);
-        }
-    };
+        })
+    }
+        
 
     return (
         <View style={{ flex: 1, padding: 20 }}>
@@ -133,7 +114,7 @@ const Reservations: React.FC<ReservationProps> = ({ initialParkingLot }) => {
                 </View>
             </Modal>
 
-            {loading ? <ActivityIndicator size="large" /> : <Button title="Create Reservation" onPress={handleCreateReservation} />} 
+            <Button title="Proceed to Payment" onPress={handleProceedToPayment} /> 
         </View>
     );
 };
