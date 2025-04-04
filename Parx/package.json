@@ -33,6 +33,7 @@
     "expo-symbols": "~0.2.2",
     "expo-system-ui": "~4.0.8",
     "expo-web-browser": "~14.0.2",
+    "flask": "^0.2.10",
     "jwt-decode": "^4.0.0",
     "mapbox-gl": "^3.10.0",
     "pocketbase": "^0.25.2",
