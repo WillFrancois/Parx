@@ -1,7 +1,8 @@
-import { pb, API_BASE_URL } from "@/config";
-import { View, Text, Button, Alert, ActivityIndicator, FlatList, TextInput, Modal, TouchableOpacity } from "react-native";
+import { pb } from "@/config";
+import { View, Text, Button, Alert, FlatList, TextInput, Modal, TouchableOpacity } from "react-native";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, {useState, useEffect} from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ParkingLot {
     id: string;
@@ -18,12 +19,29 @@ const Reservations = () => {
     const [plateNumber, setPlateNumber] = useState<string>('');
     const [timeRequested, setTimeRequested] = useState<string>('');
     const [parkingLotData, setParkingLotData] = useState<ParkingLot[]>([])
-    const [loading, setLoading] = useState<boolean>(false)
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const { lotData } = useLocalSearchParams();
     const initialParkingLot = lotData ? JSON.parse(lotData as string) : null;
     const [parkingLotId, setParkingLotId] = useState<ParkingLot | null>(initialParkingLot);
     const router = useRouter();
+
+    const isLoggedIn = pb.authStore.isValid;
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            Alert.alert("Login Required", "You must be logged in to reserve a parking spot.", [
+                { text: "Go to Login", onPress: async () => {
+                    try {
+                        await AsyncStorage.removeItem('guest');
+                        router.replace('/account/loginPage');
+                    } catch (error) {
+                        console.error("Failed to remove guest token", error);
+                        router.replace('/account/loginPage');
+                    }
+                }}
+            ])
+        }
+    }, [isLoggedIn])
 
     useEffect(() => {
         const fetchParkingLots = async () => {
