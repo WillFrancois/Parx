@@ -14,7 +14,6 @@ export default function AccountDetails() {
             created: "",
             cityOfficial: false,
         });
-    const [userId, setUserId] = useState<string | null>(null);
 
     const [reservations, setReservations] = useState<{
         timeRequested: string;
@@ -34,11 +33,8 @@ export default function AccountDetails() {
             if (!isValid) {
                 router.replace("/account/loginPage");
             } else if (isValid) {
-                console.log(pb.authStore.record);
                 try {
-                    setUserId(pb.authStore.record as unknown as string);
-                    
-                    const userData = await pb.collection('userDetails').getOne(`${pb.authStore.record}`)
+                    const userData = await pb.collection('userDetails').getOne(`${pb.authStore.record?.id}`)
                     setUser({
                         email: userData.email,
                         created: userData.created,
@@ -62,7 +58,7 @@ export default function AccountDetails() {
         return () => {
             unsubscribe();
         }
-    }, [])
+    }, [pb.authStore.record])
 
     const handleSearchReservations = async () => {
         if (!plateNumber.trim()) {
@@ -183,7 +179,7 @@ export default function AccountDetails() {
                             width: "80%",
                             alignSelf: "center"
                         }}
-                        placeholder="Enter License Plate Number"
+                        placeholder="Enter LIcense Plate Number"
                         value={plateNumber}
                         onChangeText={setPlateNumber}
                     />

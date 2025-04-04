@@ -16,7 +16,7 @@ export default function FavoritesPage() {
         } else {
             try {
                 setLoading(true);
-                const userId = pb.authStore.record;
+                const userId = pb.authStore.record?.id;
                 if (!userId) throw new Error("User ID not found");
                 
                 const response = await fetch(`${API_BASE_URL}/favorites`, {
@@ -60,7 +60,7 @@ export default function FavoritesPage() {
     const deleteFavorite = async (parkingLotId: string) => {
         try {
             setLoading(true);
-            const userId = pb.authStore.record
+            const userId = pb.authStore.record?.id
             if (!userId) throw new Error("User ID not found.");
 
             const response = await fetch(`${API_BASE_URL}/favorites/delete`, {

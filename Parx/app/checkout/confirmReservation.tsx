@@ -31,7 +31,7 @@ const ConfirmReservation = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     amount: parsedParkingLot.price_per_hour * 100, 
-                    user_id: pb.authStore.record,
+                    user_id: pb.authStore.record?.id,
                 }) 
             });
             
