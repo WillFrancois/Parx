@@ -6,7 +6,6 @@ import { API_BASE_URL } from "@/config";
 export default function CreateUser() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [cityOfficial, setCityOfficial] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -18,7 +17,7 @@ export default function CreateUser() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password, cityOfficial })
+                body: JSON.stringify({ email, password })
             });
             if (!response.ok) {
                 throw new Error("Failed to create user");
@@ -52,41 +51,6 @@ export default function CreateUser() {
                 defaultValue={password}
                 secureTextEntry
             />
-            <Text style={{ fontSize: 17, marginBottom: 10 }}>City Official: </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }} >
-                
-                <Pressable onPress={() => setCityOfficial(true)} style={{ flexDirection: "row", alignItems: "center", marginRight: 20 }} >
-                    <View style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 10,
-                        borderWidth: 2,
-                        borderColor: "#000",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginRight: 5,
-                    }} >
-                        {cityOfficial && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "#1b76be" }} />} 
-                    </View>
-                    <Text>Yes</Text>
-                </Pressable>
-                
-                <Pressable onPress={() => setCityOfficial(false)} style={{ flexDirection: "row", alignItems: "center", marginRight: 20 }} >
-                    <View style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 10,
-                        borderWidth: 2,
-                        borderColor: "#000",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginRight: 5,
-                    }} >
-                        {!cityOfficial && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "#1b76be" }} />} 
-                    </View>
-                    <Text>No</Text>
-                </Pressable>
-            </View>
             <View style={{
                             flexDirection: "row",
                             justifyContent: "space-around",
@@ -96,7 +60,7 @@ export default function CreateUser() {
                     <Button title="Create Account" onPress={handleSubmit} />
                 </View>
                 <View style={{ marginHorizontal: 5 }}>
-                    <Button title="Return to Home" onPress={() => router.push("/home")} />
+                    <Button title="Return to Home" onPress={() => router.push("/")} />
                 </View>
             </View>
             {isLoading && <ActivityIndicator size="large" />}
