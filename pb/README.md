@@ -1,9 +1,5 @@
 # Starting the Database Container
 
-## BEFORE RUNNING THIS CONTAINER
-
-Create a folder named pb_data in this folder.
-
 ## RUNNING THE SCRIPT
 
 With Docker installed, use the following command in this folder: ' docker compose up -d --build '
