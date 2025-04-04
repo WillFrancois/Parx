@@ -85,7 +85,7 @@ export default function AccountDetails() {
     };
 
     const handleAddToFavorites = async (parkingLotId: string) => {
-        if (!userId) {
+        if (!pb.authStore.record?.id) {
             Alert.alert("Error", "User ID not found.");
             return;
         }
@@ -94,7 +94,7 @@ export default function AccountDetails() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: userId,
+                    id: pb.authStore.record?.id,
                     parking_lot_id: parkingLotId
                 })
             });
