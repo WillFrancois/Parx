@@ -35,7 +35,6 @@ export default function Login() {
             console.log(pb.authStore.isValid);
             console.log(pb.authStore.token);
             console.log(pb.authStore.record);
-            console.log(typeof pb.authStore.record)
 
             setIsLoading(false);
             Alert.alert("Login Successful", "Successfully logged in!")

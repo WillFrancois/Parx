@@ -126,7 +126,7 @@ const streetMap: React.FC = () => {
                 console.log("Full Auth Store State:", {
                     isValid: pb.authStore.isValid,
                     token: pb.authStore.token,
-                    model: pb.authStore.model,
+                    record: pb.authStore.record,
                 });
 
                 const isValid = pb.authStore.isValid;
@@ -209,7 +209,7 @@ const streetMap: React.FC = () => {
             }
         };
         checkAuth();
-    }, []);
+    }, [pb.authStore.record]);
 
     useEffect(() => {
         const clearCityOfficialStatus = async () => {
